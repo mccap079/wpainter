@@ -1,0 +1,1 @@
+WIP wendypaint.com clone as a windows native app. Not including a few features. Credit for the underlying concept goes to Kim Asendorf, creator of wendypaint.com. Otherwise this is being coded from scratch to match the original functionality
