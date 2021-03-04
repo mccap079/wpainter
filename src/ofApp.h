@@ -40,13 +40,20 @@ public:
 	/// Brush drawing stuff
 
 	void updateBrushCanvas();
+	void updateBrush();
 
 	ofColor drawCol;
 	glm::vec2 posInGrid(int gridSize, int x, int y);
 	glm::vec2 prevBrushCanvasGridPoint;
-	ofFbo brushCanvasFbo;
+	ofFbo brushCanvasFbo, brushFbo;
+	ofImage brush;
 
 	bool bPaintingInBrushCanvas = false;
+
+	ofRectangle updateBrushButton;
+	glm::vec2 updateBrushButtonPos;
+	const glm::vec2 updateBrushButtonSize = { 110, 25 };
+	const string updateBrushButtonTxt = "UPDATE BRUSH";
 
 	/// Canvas drawing stuff
 

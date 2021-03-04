@@ -37,12 +37,31 @@ void ofApp::setup() {
 	brushCanvasFbo.begin();
 	ofClear(255, 255, 255, 0);
 	brushCanvasFbo.end();
-	brushCanvasFbo.getTexture().setCompression(OF_COMPRESS_ARB);
+
+	brushFbo.allocate(brushCanvasComputeSize.x, brushCanvasComputeSize.y, GL_RGBA);
+	brushFbo.begin();
+	ofClear(255, 255, 255, 0);
+	brushFbo.end();
 
 	mainCanvasFbo.allocate(mainCanvasSize.x, mainCanvasSize.y, GL_RGBA);
 	mainCanvasFbo.begin();
 	ofClear(255, 255, 255, 0);
 	mainCanvasFbo.end();
+
+	updateBrushButtonPos = { brushCanvasRect.getRight() + windowMargin,
+		brushCanvasRect.getTop() };
+
+	updateBrushButton.set(updateBrushButtonPos.x,
+		updateBrushButtonPos.y,
+		updateBrushButtonSize.x,
+		updateBrushButtonSize.y);
+
+	brush.allocate(brushCanvasComputeSize.x, brushCanvasComputeSize.y, OF_IMAGE_COLOR_ALPHA);
+	int i = 0;
+	while (i < brush.getPixelsRef().size()) {
+		brush.getPixelsRef()[i] = 255;
+		i++;
+	}
 }
 
 //--------------------------------------------------------------
@@ -87,6 +106,21 @@ void ofApp::draw() {
 		brushCanvasPos.y,
 		brushCanvasDisplaySize.x,
 		brushCanvasDisplaySize.y);
+
+	/// ----- Draw UI
+
+	ofSetColor(ofColor::black);
+	ofDrawRectangle(updateBrushButton.getCenter().x,
+		updateBrushButton.getCenter().y,
+		updateBrushButtonSize.x + 3,
+		updateBrushButtonSize.y + 3);
+	ofSetColor(ofColor::darkGray);
+	ofDrawRectangle(updateBrushButton.getCenter(), updateBrushButtonSize.x, updateBrushButtonSize.y);
+	ofSetColor(ofColor::black);
+	ofDrawBitmapString(updateBrushButtonTxt, updateBrushButton.getLeft() + 7, updateBrushButton.getBottom() - 7);
+
+	ofSetColor(ofColor::red);
+	ofDrawRectangle(updateBrushButton);
 
 	/// ----- Brush paint
 
@@ -135,8 +169,23 @@ void ofApp::updateMainCanvas() {
 	pix =
 		pix.resize(25, 25, OF_INTERPOLATE_NEAREST_NEIGHBOR);
 	brushCanvasFbo.getTextureReference().setFromPixels(pix);*/
-	brushCanvasFbo.draw(x + (brushCanvasMagnify / 2), y - brushCanvasMagnify, brushCanvasComputeSize.x, brushCanvasComputeSize.y);
+	brush.draw(x + (brushCanvasMagnify / 2), y - brushCanvasMagnify);
 	mainCanvasFbo.end();
+}
+
+//--------------------------------------------------------------
+void ofApp::updateBrush() {
+	ofFloatPixels pix;
+	ofFloatPixels culledPix;
+	culledPix.allocate(25, 25, OF_IMAGE_COLOR_ALPHA);
+	brushCanvasFbo.getTextureReference().readToPixels(pix);
+	int i = 0;
+	for (int p = 0; p < pix.size(); p += brushCanvasMagnify) {
+		brush.getPixelsRef()[i] = pix[p];
+		i++;
+	}
+	//brushFbo.getTextureReference().loadData(culledPix);
+	cout << "Brush updated!" << endl;
 }
 
 //--------------------------------------------------------------
@@ -224,6 +273,9 @@ void ofApp::mousePressed(int x, int y, int button) {
 void ofApp::mouseReleased(int x, int y, int button) {
 	bPaintingInBrushCanvas = false;
 	bPaintingInMainCanvas = false;
+	if (updateBrushButton.inside(x, y)) {
+		updateBrush();
+	}
 }
 
 //--------------------------------------------------------------
