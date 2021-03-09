@@ -31,7 +31,6 @@ void ofApp::setup() {
 
 	makeCanvasBg();
 
-	drawCol = ofColor::red;
 	prevBrushCanvasGridPoint = { -100,-100 };
 
 	brushCanvasFbo.allocate(brushCanvasDisplaySize.x, brushCanvasDisplaySize.y, GL_RGBA);
@@ -44,17 +43,34 @@ void ofApp::setup() {
 	ofClear(255, 255, 255, 0);
 	mainCanvasFbo.end();
 
+	brush.allocate(brushCanvasComputeSize.x, brushCanvasComputeSize.y, OF_IMAGE_COLOR_ALPHA);
+
+	/// ------ GUI
+
 	updateBrushButton.setup(
 		{ brushCanvasRect.getRight() + windowMargin,
 		brushCanvasRect.getTop() },
 		updateBrushButtonTxt);
 	ofAddListener(updateBrushButton.onRelease, this, &ofApp::updateBrush);
 
-	brush.allocate(brushCanvasComputeSize.x, brushCanvasComputeSize.y, OF_IMAGE_COLOR_ALPHA);
+	colorPanel.setup();
+	colorPanel.setPosition(
+		{ brushCanvasRect.getRight() + windowMargin,
+		updateBrushButton.getBottom() + windowMargin, });
+	colorPanel.setSize(updateBrushButton.getWidth(), colorPanel.getHeight());
+
+	colorPanel.add(red.setup("R", 0, 0, 255));
+	colorPanel.add(green.setup("G", 0, 0, 255));
+	colorPanel.add(blue.setup("B", 0, 0, 255));
+	red.setSize(colorPanel.getWidth(), red.getHeight());
+	green.setSize(colorPanel.getWidth(), green.getHeight());
+	blue.setSize(colorPanel.getWidth(), blue.getHeight());
 } /// end setup
 
 //--------------------------------------------------------------
 void ofApp::update() {
+	drawCol = ofColor(red, green, blue);
+	colorPanel.setHeaderBackgroundColor(drawCol);
 }
 
 //--------------------------------------------------------------
@@ -94,10 +110,6 @@ void ofApp::draw() {
 		brushCanvasDisplaySize.x,
 		brushCanvasDisplaySize.y);
 
-	/// ----- Draw UI
-
-	updateBrushButton.draw();
-
 	/// ----- Brush paint
 
 	if (bPaintingInBrushCanvas) updateBrushCanvas();
@@ -109,6 +121,11 @@ void ofApp::draw() {
 	if (bPaintingInMainCanvas) updateMainCanvas();
 	mainCanvasFbo.draw(mainCanvasRect.getCenter().x,
 		mainCanvasRect.getCenter().y);
+
+	/// ----- Draw UI
+
+	updateBrushButton.draw();
+	colorPanel.draw();
 }
 
 //--------------------------------------------------------------

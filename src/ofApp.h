@@ -2,6 +2,7 @@
 
 #include "ofMain.h"
 #include "Button.h"
+#include "ofxGui.h"
 
 class ofApp : public ofBaseApp {
 public:
@@ -43,7 +44,6 @@ public:
 	void updateBrushCanvas();
 	void updateBrush(int& i);
 
-	ofColor drawCol;
 	glm::vec2 posInGrid(int gridSize, int x, int y);
 	glm::vec2 prevBrushCanvasGridPoint;
 	ofFbo brushCanvasFbo;
@@ -61,4 +61,11 @@ public:
 	ofFbo mainCanvasFbo;
 
 	bool bPaintingInMainCanvas = false;
+
+	/// Color selection
+
+	ofColor drawCol = ofColor::black;
+	ofxPanel colorPanel;
+	ofxFloatSlider red, green, blue;
+	glm::vec2 colorPanelPos;
 };

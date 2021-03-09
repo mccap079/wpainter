@@ -76,6 +76,14 @@ public:
 		setRect();
 	}
 
+	float getBottom() {
+		return m_btnRect.getBottom();
+	}
+
+	float getWidth() {
+		return m_btnRect.getWidth();
+	}
+
 	bool isReleased = false;
 	ofEvent<int> onRelease;
 };
