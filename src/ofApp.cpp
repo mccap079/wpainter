@@ -2,6 +2,7 @@
 
 //--------------------------------------------------------------
 void ofApp::setup() {
+	ofDisableAntiAliasing();
 	ofLogToConsole();
 
 	mainCanvasPos = { windowMargin + (mainCanvasSize.x / 2),
@@ -38,11 +39,6 @@ void ofApp::setup() {
 	ofClear(255, 255, 255, 0);
 	brushCanvasFbo.end();
 
-	brushFbo.allocate(brushCanvasComputeSize.x, brushCanvasComputeSize.y, GL_RGBA);
-	brushFbo.begin();
-	ofClear(255, 255, 255, 0);
-	brushFbo.end();
-
 	mainCanvasFbo.allocate(mainCanvasSize.x, mainCanvasSize.y, GL_RGBA);
 	mainCanvasFbo.begin();
 	ofClear(255, 255, 255, 0);
@@ -57,12 +53,7 @@ void ofApp::setup() {
 		updateBrushButtonSize.y);
 
 	brush.allocate(brushCanvasComputeSize.x, brushCanvasComputeSize.y, OF_IMAGE_COLOR_ALPHA);
-	int i = 0;
-	while (i < brush.getPixelsRef().size()) {
-		brush.getPixelsRef()[i] = 255;
-		i++;
-	}
-}
+} /// end setup
 
 //--------------------------------------------------------------
 void ofApp::update() {
@@ -119,9 +110,6 @@ void ofApp::draw() {
 	ofSetColor(ofColor::black);
 	ofDrawBitmapString(updateBrushButtonTxt, updateBrushButton.getLeft() + 7, updateBrushButton.getBottom() - 7);
 
-	ofSetColor(ofColor::red);
-	ofDrawRectangle(updateBrushButton);
-
 	/// ----- Brush paint
 
 	if (bPaintingInBrushCanvas) updateBrushCanvas();
@@ -165,26 +153,27 @@ void ofApp::updateMainCanvas() {
 	int y = ofGetMouseY();
 
 	mainCanvasFbo.begin();
-	/*ofPixels pix;
-	pix =
-		pix.resize(25, 25, OF_INTERPOLATE_NEAREST_NEIGHBOR);
-	brushCanvasFbo.getTextureReference().setFromPixels(pix);*/
-	brush.draw(x + (brushCanvasMagnify / 2), y - brushCanvasMagnify);
+	brush.draw(x + (brushCanvasMagnify / 2), y - brushCanvasMagnify, 26, 26);
 	mainCanvasFbo.end();
 }
 
 //--------------------------------------------------------------
 void ofApp::updateBrush() {
-	ofFloatPixels pix;
-	ofFloatPixels culledPix;
-	culledPix.allocate(25, 25, OF_IMAGE_COLOR_ALPHA);
-	brushCanvasFbo.getTextureReference().readToPixels(pix);
-	int i = 0;
-	for (int p = 0; p < pix.size(); p += brushCanvasMagnify) {
-		brush.getPixelsRef()[i] = pix[p];
-		i++;
+	ofPixels pix, culledPix;
+
+	brushCanvasFbo.getTexture().setTextureMinMagFilter(GL_NEAREST, GL_NEAREST);
+	brushCanvasFbo.getTexture().readToPixels(pix);
+	culledPix.allocate(brush.getWidth(), brush.getHeight(), pix.getImageType());
+
+	for (int y = 0; y < brushCanvasFbo.getTexture().getWidth(); y += brushCanvasMagnify) { // Read as horizontal rows
+		for (int x = 0; x < brushCanvasFbo.getTexture().getHeight(); x += brushCanvasMagnify) {
+			culledPix.setColor(x / brushCanvasMagnify, y / brushCanvasMagnify, pix.getColor(x, y));
+		}
 	}
-	//brushFbo.getTextureReference().loadData(culledPix);
+
+	brush.setTextureMinMagFilter(GL_NEAREST, GL_NEAREST);
+	brush.loadData(culledPix);
+
 	cout << "Brush updated!" << endl;
 }
 
