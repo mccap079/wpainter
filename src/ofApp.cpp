@@ -176,8 +176,8 @@ void ofApp::updateBrush(int& i) {
 		}
 	}
 
-	brush.setTextureMinMagFilter(GL_NEAREST, GL_NEAREST);
-	brush.loadData(culledPix);
+	brush.getTextureReference().setTextureMinMagFilter(GL_NEAREST, GL_NEAREST);
+	brush.getTextureReference().loadData(culledPix);
 
 	cout << "Brush updated!" << endl;
 }

@@ -47,7 +47,7 @@ public:
 	glm::vec2 posInGrid(int gridSize, int x, int y);
 	glm::vec2 prevBrushCanvasGridPoint;
 	ofFbo brushCanvasFbo;
-	ofTexture brush;
+	ofImage brush;
 
 	bool bPaintingInBrushCanvas = false;
 
