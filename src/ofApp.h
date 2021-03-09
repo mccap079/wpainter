@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
+#include "Button.h"
 
 class ofApp : public ofBaseApp {
 public:
@@ -40,7 +41,7 @@ public:
 	/// Brush drawing stuff
 
 	void updateBrushCanvas();
-	void updateBrush();
+	void updateBrush(int& i);
 
 	ofColor drawCol;
 	glm::vec2 posInGrid(int gridSize, int x, int y);
@@ -50,9 +51,7 @@ public:
 
 	bool bPaintingInBrushCanvas = false;
 
-	ofRectangle updateBrushButton;
-	glm::vec2 updateBrushButtonPos;
-	const glm::vec2 updateBrushButtonSize = { 110, 25 };
+	Button updateBrushButton;
 	const string updateBrushButtonTxt = "UPDATE BRUSH";
 
 	/// Canvas drawing stuff

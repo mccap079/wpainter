@@ -44,13 +44,11 @@ void ofApp::setup() {
 	ofClear(255, 255, 255, 0);
 	mainCanvasFbo.end();
 
-	updateBrushButtonPos = { brushCanvasRect.getRight() + windowMargin,
-		brushCanvasRect.getTop() };
-
-	updateBrushButton.set(updateBrushButtonPos.x,
-		updateBrushButtonPos.y,
-		updateBrushButtonSize.x,
-		updateBrushButtonSize.y);
+	updateBrushButton.setup(
+		{ brushCanvasRect.getRight() + windowMargin,
+		brushCanvasRect.getTop() },
+		updateBrushButtonTxt);
+	ofAddListener(updateBrushButton.onRelease, this, &ofApp::updateBrush);
 
 	brush.allocate(brushCanvasComputeSize.x, brushCanvasComputeSize.y, OF_IMAGE_COLOR_ALPHA);
 } /// end setup
@@ -78,7 +76,6 @@ void ofApp::draw() {
 
 	/// Canvas
 	ofSetColor(canvasBgCol);
-	//ofDrawRectangle(mainCanvasPos.x, mainCanvasPos.y, mainCanvasSize.x, mainCanvasSize.y);
 	mainCanvasBgFbo.draw(mainCanvasPos.x, mainCanvasPos.y);
 
 	/// ----- Draw brush canvas
@@ -92,7 +89,6 @@ void ofApp::draw() {
 
 	/// Canvas
 	ofSetColor(canvasBgCol);
-	//ofDrawRectangle(brushCanvasPos.x, brushCanvasPos.y, brushCanvasSize.x, brushCanvasSize.y);
 	brushCanvasBgFbo.draw(brushCanvasPos.x,
 		brushCanvasPos.y,
 		brushCanvasDisplaySize.x,
@@ -100,15 +96,7 @@ void ofApp::draw() {
 
 	/// ----- Draw UI
 
-	ofSetColor(ofColor::black);
-	ofDrawRectangle(updateBrushButton.getCenter().x,
-		updateBrushButton.getCenter().y,
-		updateBrushButtonSize.x + 3,
-		updateBrushButtonSize.y + 3);
-	ofSetColor(ofColor::darkGray);
-	ofDrawRectangle(updateBrushButton.getCenter(), updateBrushButtonSize.x, updateBrushButtonSize.y);
-	ofSetColor(ofColor::black);
-	ofDrawBitmapString(updateBrushButtonTxt, updateBrushButton.getLeft() + 7, updateBrushButton.getBottom() - 7);
+	updateBrushButton.draw();
 
 	/// ----- Brush paint
 
@@ -158,7 +146,7 @@ void ofApp::updateMainCanvas() {
 }
 
 //--------------------------------------------------------------
-void ofApp::updateBrush() {
+void ofApp::updateBrush(int& i) {
 	ofPixels pix, culledPix;
 
 	brushCanvasFbo.getTexture().setTextureMinMagFilter(GL_NEAREST, GL_NEAREST);
@@ -227,7 +215,6 @@ void ofApp::makeCanvasBg()
 				if (columnStartsGray) ofSetColor(ofColor::white);
 				else ofSetColor(ofColor::lightGray);
 			}
-			//ofSetColor(ofColor::green);
 			ofDrawRectangle(x, y, brushCanvasMagnify, brushCanvasMagnify);
 		}
 	}
@@ -256,15 +243,14 @@ void ofApp::mouseDragged(int x, int y, int button) {
 void ofApp::mousePressed(int x, int y, int button) {
 	bPaintingInBrushCanvas = brushCanvasRect.inside(x, y) ? 1 : 0;
 	bPaintingInMainCanvas = mainCanvasRect.inside(x, y) ? 1 : 0;
+	updateBrushButton.mousePressed(x, y);
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button) {
 	bPaintingInBrushCanvas = false;
 	bPaintingInMainCanvas = false;
-	if (updateBrushButton.inside(x, y)) {
-		updateBrush();
-	}
+	updateBrushButton.mouseReleased(x, y);
 }
 
 //--------------------------------------------------------------
