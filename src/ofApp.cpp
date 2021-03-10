@@ -47,36 +47,65 @@ void ofApp::setup() {
 
 	/// ------ GUI
 
-	updateBrushButton.setup(
-		{ brushCanvasRect.getRight() + windowMargin,
-		brushCanvasRect.getTop() },
-		updateBrushButtonTxt);
-	ofAddListener(updateBrushButton.onRelease, this, &ofApp::updateBrush);
+	colorPanelPos = { brushCanvasRect.getRight() + windowMargin,
+		brushCanvasRect.getTop() };
+
+	updateBrushBtn.addListener(this, &ofApp::updateBrush);
 
 	colorPanel.setup();
-	colorPanel.setPosition(
-		{ brushCanvasRect.getRight() + windowMargin,
-		updateBrushButton.getBottom() + windowMargin, });
-	colorPanel.setSize(updateBrushButton.getWidth(), colorPanel.getHeight());
+	colorPanel.setPosition(colorPanelPos);
 
-	colorPanel.add(red.setup("R", 0, 0, 255));
-	colorPanel.add(green.setup("G", 0, 0, 255));
-	colorPanel.add(blue.setup("B", 0, 0, 255));
-	colorPanel.add(erase.setup("Eraser", false));
-	red.setSize(colorPanel.getWidth(), red.getHeight());
-	green.setSize(colorPanel.getWidth(), green.getHeight());
-	blue.setSize(colorPanel.getWidth(), blue.getHeight());
-	erase.setSize(colorPanel.getWidth(), erase.getHeight());
+	colorPanel.add(brushPanelTitle.setup(brushPanelTitleStr));
+	colorPanel.add(updateBrushBtn.setup(updateBrushButtonTxt));
+	colorPanel.add(colorPreview.setup(colorLabel));
+	colorPanel.add(red.setup("<-> R", 0, 0, 255));
+	colorPanel.add(green.setup("<-> G", 0, 0, 255));
+	colorPanel.add(blue.setup("<-> B", 0, 0, 255));
+	colorPanel.add(erase.setup("< Eraser", false));
+	colorPanel.add(clearBrushBtn.setup(clearBrushBtnTxt));
+
+	ofColor bgCol = ofColor::lightGray;
+
+	updateBrushBtn.setBackgroundColor(bgCol);
+	updateBrushBtn.setTextColor(ofColor::black);
+	updateBrushBtn.setFillColor(ofColor::black);
+	updateBrushBtn.setBorderColor(ofColor::black);
+
+	colorPreview.setBackgroundColor(bgCol);
+	colorPreview.setTextColor(ofColor::black);
+	colorPreview.setFillColor(ofColor::black);
+	colorPreview.setBorderColor(ofColor::black);
+
+	red.setBackgroundColor(bgCol);
+	red.setTextColor(ofColor::black);
 	red.setFillColor(ofColor::red);
+	green.setBackgroundColor(bgCol);
+	green.setTextColor(ofColor::black);
 	green.setFillColor(ofColor::green);
+	blue.setBackgroundColor(bgCol);
+	blue.setTextColor(ofColor::black);
 	blue.setFillColor(ofColor::blue);
-	//erase.setFillColor(ofColor::darkGray);
+
+	erase.setBackgroundColor(bgCol);
+	erase.setTextColor(ofColor::black);
+	erase.setFillColor(ofColor::black);
+	erase.setBorderColor(ofColor::black);
+	clearBrushBtn.setBackgroundColor(bgCol);
+	clearBrushBtn.setTextColor(ofColor::black);
+	clearBrushBtn.setFillColor(ofColor::black);
+	clearBrushBtn.setBorderColor(ofColor::black);
 } /// end setup
+
+//--------------------------------------------------------------
+void ofApp::exit() {
+	updateBrushBtn.removeListener(this, &ofApp::updateBrush);
+}
 
 //--------------------------------------------------------------
 void ofApp::update() {
 	drawCol = ofColor(red, green, blue, erase ? 0 : 255);
-	colorPanel.setHeaderBackgroundColor(drawCol);
+	//colorPanel.setHeaderBackgroundColor(drawCol);
+	colorPreview.setBackgroundColor(drawCol);
 }
 
 //--------------------------------------------------------------
@@ -131,7 +160,6 @@ void ofApp::draw() {
 
 	/// ----- Draw UI
 
-	updateBrushButton.draw();
 	colorPanel.draw();
 }
 
@@ -201,7 +229,7 @@ void ofApp::updateMainCanvas() {
 }
 
 //--------------------------------------------------------------
-void ofApp::updateBrush(int& i) {
+void ofApp::updateBrush() {
 	ofPixels pix, culledPix;
 
 	brushCanvasFbo.getTexture().setTextureMinMagFilter(GL_NEAREST, GL_NEAREST);
@@ -298,14 +326,12 @@ void ofApp::mouseDragged(int x, int y, int button) {
 void ofApp::mousePressed(int x, int y, int button) {
 	bPaintingInBrushCanvas = brushCanvasRect.inside(x, y) ? 1 : 0;
 	bPaintingInMainCanvas = mainCanvasRect.inside(x, y) ? 1 : 0;
-	updateBrushButton.mousePressed(x, y);
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button) {
 	bPaintingInBrushCanvas = false;
 	bPaintingInMainCanvas = false;
-	updateBrushButton.mouseReleased(x, y);
 }
 
 //--------------------------------------------------------------

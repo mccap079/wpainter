@@ -9,6 +9,7 @@ public:
 	void setup();
 	void update();
 	void draw();
+	void exit();
 
 	void keyPressed(int key);
 	void keyReleased(int key);
@@ -42,7 +43,7 @@ public:
 	/// Brush drawing stuff
 
 	void updateBrushCanvas();
-	void updateBrush(int& i);
+	void updateBrush();
 
 	glm::vec2 posInGrid(int gridSize, int x, int y);
 	glm::vec2 prevBrushCanvasGridPoint;
@@ -50,9 +51,6 @@ public:
 	ofImage brush;
 
 	bool bPaintingInBrushCanvas = false;
-
-	Button updateBrushButton;
-	const string updateBrushButtonTxt = "UPDATE BRUSH";
 
 	/// Canvas drawing stuff
 
@@ -63,10 +61,18 @@ public:
 	bool bPaintingInMainCanvas = false;
 
 	/// Color selection
+	const string brushPanelTitleStr = "<<< BRUSH SETTINGS";
+	const string updateBrushButtonTxt = "< Update brush";
+	const string colorLabel = "Set color:";
+	const string clearBrushBtnTxt = "< Clear brush canvas";
 
 	ofColor drawCol = ofColor::black;
 	ofxPanel colorPanel;
+	ofxLabel brushPanelTitle;
+	ofxButton updateBrushBtn, saveBrushBtn;
+	ofxLabel colorPreview;
 	ofxFloatSlider red, green, blue;
 	ofxToggle erase;
+	ofxButton clearBrushBtn;
 	glm::vec2 colorPanelPos;
 };
