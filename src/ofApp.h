@@ -67,5 +67,6 @@ public:
 	ofColor drawCol = ofColor::black;
 	ofxPanel colorPanel;
 	ofxFloatSlider red, green, blue;
+	ofxToggle erase;
 	glm::vec2 colorPanelPos;
 };

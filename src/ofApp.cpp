@@ -62,14 +62,20 @@ void ofApp::setup() {
 	colorPanel.add(red.setup("R", 0, 0, 255));
 	colorPanel.add(green.setup("G", 0, 0, 255));
 	colorPanel.add(blue.setup("B", 0, 0, 255));
+	colorPanel.add(erase.setup("Eraser", false));
 	red.setSize(colorPanel.getWidth(), red.getHeight());
 	green.setSize(colorPanel.getWidth(), green.getHeight());
 	blue.setSize(colorPanel.getWidth(), blue.getHeight());
+	erase.setSize(colorPanel.getWidth(), erase.getHeight());
+	red.setFillColor(ofColor::red);
+	green.setFillColor(ofColor::green);
+	blue.setFillColor(ofColor::blue);
+	//erase.setFillColor(ofColor::darkGray);
 } /// end setup
 
 //--------------------------------------------------------------
 void ofApp::update() {
-	drawCol = ofColor(red, green, blue);
+	drawCol = ofColor(red, green, blue, erase ? 0 : 255);
 	colorPanel.setHeaderBackgroundColor(drawCol);
 }
 
@@ -113,6 +119,7 @@ void ofApp::draw() {
 	/// ----- Brush paint
 
 	if (bPaintingInBrushCanvas) updateBrushCanvas();
+	ofSetColor(ofColor::white);
 	brushCanvasFbo.draw(brushCanvasRect.getLeft() + (brushCanvasDisplaySize.x / 2),
 		brushCanvasRect.getTop() + (brushCanvasDisplaySize.x / 2));
 
@@ -140,15 +147,46 @@ void ofApp::updateBrushCanvas() {
 		brushCanvasMousePos.x,
 		brushCanvasMousePos.y);
 
-	if (p != prevBrushCanvasGridPoint) {
-		ofSetColor(drawCol);
-		brushCanvasFbo.begin();
-		ofDrawRectangle(p.x + (brushCanvasMagnify / 2),
-			p.y + (brushCanvasMagnify / 2),
-			brushCanvasMagnify,
-			brushCanvasMagnify);
-		brushCanvasFbo.end();
+	ofSetColor(drawCol);
+
+	if (p == prevBrushCanvasGridPoint) return;
+
+	/// Erase current pixel before drawing new pixel in its place
+	/// Method: reallocate the entire canvas minus p.x,p.y
+	if (erase) {
+		ofPixels pix, culledPix;
+		brushCanvasFbo.getTexture().readToPixels(pix);
+		culledPix.allocate(pix.getWidth(), pix.getHeight(), pix.getImageType());
+		for (int x = 0; x < brushCanvasFbo.getWidth(); x += brushCanvasMagnify) {
+			for (int y = 0; y < brushCanvasFbo.getHeight(); y += brushCanvasMagnify) {
+				if (glm::vec2(x, y) != p) {
+					for (int xx = 0; xx < brushCanvasMagnify; xx++) {
+						for (int yy = 0; yy < brushCanvasMagnify; yy++) {
+							culledPix.setColor(x + xx, y + yy, pix.getColor(x, y));
+						}
+					}
+				}
+				else {
+					for (int xx = 0; xx < brushCanvasMagnify; xx++) {
+						for (int yy = 0; yy < brushCanvasMagnify; yy++) {
+							culledPix.setColor(x + xx, y + yy, ofColor(255, 255, 255, 0));
+						}
+					}
+				}
+			}
+		}
+
+		brushCanvasFbo.begin(); ofClear(255, 255, 255, 0); brushCanvasFbo.end();
+		brushCanvasFbo.getTexture().loadData(culledPix);
 	}
+
+	brushCanvasFbo.begin();
+	ofDrawRectangle(p.x + (brushCanvasMagnify / 2),
+		p.y + (brushCanvasMagnify / 2),
+		brushCanvasMagnify,
+		brushCanvasMagnify);
+	brushCanvasFbo.end();
+
 	prevBrushCanvasGridPoint = p;
 }
 
