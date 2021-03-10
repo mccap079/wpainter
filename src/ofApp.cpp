@@ -45,18 +45,54 @@ void ofApp::setup() {
 
 	brush.allocate(brushCanvasComputeSize.x, brushCanvasComputeSize.y, OF_IMAGE_COLOR_ALPHA);
 
+	/// ----- Saved brushes
+
+	savedBrushesPos =
+	{ (brushCanvasRect.getRight() + windowMargin) + (brushCanvasComputeSize.x / 2),
+		brushCanvasRect.getTop() + (brushCanvasComputeSize.y / 2) };
+	savedBrushRects.resize(numSavedBrushes);
+	int rowLength = 5;
+	int y = 0, x = 0;
+	for (int i = 0; i < savedBrushRects.size(); i++) {
+		savedBrushRects[i].setSize(
+			brushCanvasComputeSize.x,
+			brushCanvasComputeSize.y);
+
+		if (i > 0) {
+			if (i % rowLength == 0) {
+				x -= rowLength - 1;
+				y++;
+			}
+			else x++;
+		}
+		savedBrushRects[i].setPosition(
+			savedBrushesPos.x + ((savedBrushRects[i].getWidth() + windowMargin) * x),
+			savedBrushesPos.y + ((savedBrushRects[i].getHeight() + windowMargin) * y));
+	}
+
+	savedBrushFbos.resize(numSavedBrushes);
+	for (int i = 0; i < savedBrushFbos.size(); i++) {
+		savedBrushFbos[i].allocate(brushCanvasComputeSize.x, brushCanvasComputeSize.y, GL_RGBA);
+		savedBrushFbos[i].begin();
+		ofClear(255, 255, 255, 0);
+		savedBrushFbos[i].end();
+	}
+
+	/// TODO: Load brushes from file
+
 	/// ------ GUI
 
 	colorPanelPos = { brushCanvasRect.getRight() + windowMargin,
 		brushCanvasRect.getTop() };
 
-	updateBrushBtn.addListener(this, &ofApp::updateBrush);
+	saveBrushBtn.addListener(this, &ofApp::updateBrush);
+	clearBrushBtn.addListener(this, &ofApp::clearBrushCanvas);
 
 	colorPanel.setup();
 	colorPanel.setPosition(colorPanelPos);
 
 	colorPanel.add(brushPanelTitle.setup(brushPanelTitleStr));
-	colorPanel.add(updateBrushBtn.setup(updateBrushButtonTxt));
+	colorPanel.add(saveBrushBtn.setup(saveBrushButtonTxt));
 	colorPanel.add(colorPreview.setup(colorLabel));
 	colorPanel.add(red.setup("<-> R", 0, 0, 255));
 	colorPanel.add(green.setup("<-> G", 0, 0, 255));
@@ -66,10 +102,10 @@ void ofApp::setup() {
 
 	ofColor bgCol = ofColor::lightGray;
 
-	updateBrushBtn.setBackgroundColor(bgCol);
-	updateBrushBtn.setTextColor(ofColor::black);
-	updateBrushBtn.setFillColor(ofColor::black);
-	updateBrushBtn.setBorderColor(ofColor::black);
+	saveBrushBtn.setBackgroundColor(bgCol);
+	saveBrushBtn.setTextColor(ofColor::black);
+	saveBrushBtn.setFillColor(ofColor::black);
+	saveBrushBtn.setBorderColor(ofColor::black);
 
 	colorPreview.setBackgroundColor(bgCol);
 	colorPreview.setTextColor(ofColor::black);
@@ -98,7 +134,8 @@ void ofApp::setup() {
 
 //--------------------------------------------------------------
 void ofApp::exit() {
-	updateBrushBtn.removeListener(this, &ofApp::updateBrush);
+	saveBrushBtn.removeListener(this, &ofApp::updateBrush);
+	clearBrushBtn.removeListener(this, &ofApp::clearBrushCanvas);
 }
 
 //--------------------------------------------------------------
@@ -144,6 +181,22 @@ void ofApp::draw() {
 		brushCanvasPos.y,
 		brushCanvasDisplaySize.x,
 		brushCanvasDisplaySize.y);
+
+	/// ----- Saved brushes
+
+	for (int i = 0; i < savedBrushRects.size(); i++) {
+		/// Border
+		ofSetColor(canvasBorderCol);
+		ofDrawRectangle(savedBrushRects[i].getPosition().x,
+			savedBrushRects[i].getPosition().y,
+			savedBrushRects[i].getWidth() + 2,
+			savedBrushRects[i].getHeight() + 2);
+		ofSetColor(ofColor::white);
+		ofDrawRectangle(savedBrushRects[i]);
+		//savedBrushFbos[i].draw(savedBrushRects[i]);
+	}
+
+	savedBrushFbos[0].draw(savedBrushRects[0]);
 
 	/// ----- Brush paint
 
@@ -219,6 +272,13 @@ void ofApp::updateBrushCanvas() {
 }
 
 //--------------------------------------------------------------
+void ofApp::clearBrushCanvas() {
+	brushCanvasFbo.begin();
+	ofClear(255, 255, 255, 0);
+	brushCanvasFbo.end();
+}
+
+//--------------------------------------------------------------
 void ofApp::updateMainCanvas() {
 	int x = ofGetMouseX();
 	int y = ofGetMouseY();
@@ -246,6 +306,13 @@ void ofApp::updateBrush() {
 	brush.getTextureReference().loadData(culledPix);
 
 	cout << "Brush updated!" << endl;
+
+	saveBrush(culledPix);
+}
+
+void ofApp::saveBrush(ofPixels& p) {
+	savedBrushFbos[0].getTextureReference().loadData(p);
+	cout << "Brush saved!" << endl;
 }
 
 //--------------------------------------------------------------

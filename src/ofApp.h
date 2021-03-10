@@ -44,6 +44,7 @@ public:
 
 	void updateBrushCanvas();
 	void updateBrush();
+	void clearBrushCanvas();
 
 	glm::vec2 posInGrid(int gridSize, int x, int y);
 	glm::vec2 prevBrushCanvasGridPoint;
@@ -63,16 +64,28 @@ public:
 	/// Color selection
 	const string brushPanelTitleStr = "<<< BRUSH SETTINGS";
 	const string updateBrushButtonTxt = "< Update brush";
+	const string saveBrushButtonTxt = "< Save brush";
 	const string colorLabel = "Set color:";
 	const string clearBrushBtnTxt = "< Clear brush canvas";
 
 	ofColor drawCol = ofColor::black;
 	ofxPanel colorPanel;
 	ofxLabel brushPanelTitle;
-	ofxButton updateBrushBtn, saveBrushBtn;
+	ofxButton saveBrushBtn;
 	ofxLabel colorPreview;
 	ofxFloatSlider red, green, blue;
 	ofxToggle erase;
 	ofxButton clearBrushBtn;
 	glm::vec2 colorPanelPos;
+
+	/// Saved brushes collection
+
+	void saveBrush(ofPixels& p);
+
+	const int numSavedBrushes = 30;
+	glm::vec2 savedBrushesPos;
+	const int savedBrushesPadding = windowMargin;
+	int selectedBrush = 0;
+	vector<ofFbo> savedBrushFbos;
+	vector<ofRectangle> savedBrushRects;
 };
