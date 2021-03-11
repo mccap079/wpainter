@@ -58,6 +58,7 @@ public:
 	void updateMainCanvas();
 	void clearMainCanvas();
 	void fillMainCanvas();
+	void savePainting();
 
 	ofFbo mainCanvasFbo;
 
@@ -85,7 +86,7 @@ public:
 	const string savePaintingBtnTxt = "< Export painting";
 	const string loadPaintingBtnTxt = "< Import painting";
 	const string canvasBgLabelTxt = "Fill canvas color:";
-	const string setCanvasBgTxt = "< Set fill color";
+	const string setCanvasBgTxt = "< Fill canvas";
 	const string clearCanvasBtnTxt = "< Clear canvas";
 	ofxPanel canvasPanel;
 	glm::vec2 canvasPanelPos;

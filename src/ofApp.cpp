@@ -189,6 +189,7 @@ void ofApp::setup() {
 
 	clearCanvasBtn.addListener(this, &ofApp::clearMainCanvas);
 	setCanvasBgBtn.addListener(this, &ofApp::fillMainCanvas);
+	savePaintingBtn.addListener(this, &ofApp::savePainting);
 } /// end setup
 
 //--------------------------------------------------------------
@@ -197,6 +198,7 @@ void ofApp::exit() {
 	clearBrushBtn.removeListener(this, &ofApp::clearBrushCanvas);
 	clearCanvasBtn.removeListener(this, &ofApp::clearMainCanvas);
 	setCanvasBgBtn.removeListener(this, &ofApp::fillMainCanvas);
+	savePaintingBtn.removeListener(this, &ofApp::savePainting);
 }
 
 //--------------------------------------------------------------
@@ -378,6 +380,17 @@ void ofApp::fillMainCanvas() {
 	mainCanvasFbo.begin();
 	ofClear(fillRed, fillGreen, fillBlue, 255);
 	mainCanvasFbo.end();
+}
+
+//--------------------------------------------------------------
+void ofApp::savePainting() {
+	ofPixels p;
+	mainCanvasFbo.getTexture().readToPixels(p);
+	string filename = ofGetTimestampString("%F_%H-%M-%S");
+	ofImage img;
+	img.setFromPixels(p);
+	img.saveImage(ofToDataPath("paintings/" + filename + ".png"));
+	cout << "Painting saved at [" << ofToDataPath("paintings/" + filename + ".png") << "]" << endl;
 }
 
 //--------------------------------------------------------------
