@@ -59,6 +59,8 @@ public:
 	void clearMainCanvas();
 	void fillMainCanvas();
 	void savePainting();
+	void getTextFieldContent(string& filename);
+	void loadPainting();
 
 	ofFbo mainCanvasFbo;
 
@@ -84,7 +86,8 @@ public:
 	/// Main canvas GUI
 	const string canvasPanelTitleStr = "^^^ CANVAS SETTINGS";
 	const string savePaintingBtnTxt = "< Export painting";
-	const string loadPaintingBtnTxt = "< Import painting";
+	const string loadPaintingLabelTxt = "Import painting:";
+	const string loadPaintingBtnTxt = "< Import";
 	const string canvasBgLabelTxt = "Fill canvas color:";
 	const string setCanvasBgTxt = "< Fill canvas";
 	const string clearCanvasBtnTxt = "< Clear canvas";
@@ -92,11 +95,15 @@ public:
 	glm::vec2 canvasPanelPos;
 	ofxLabel canvasPanelTitle;
 	ofxButton savePaintingBtn;
+	ofxLabel loadPaintingLabel;
+	ofxTextField loadPaintingField;
 	ofxButton loadPaintingBtn;
 	ofxButton setCanvasBgBtn;
 	ofxLabel bgColorLabel;
 	ofxFloatSlider fillRed, fillGreen, fillBlue;
 	ofxButton clearCanvasBtn;
+
+	string loadPaintingFilename;
 
 	/// Saved brushes collection
 

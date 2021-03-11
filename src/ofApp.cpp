@@ -144,6 +144,8 @@ void ofApp::setup() {
 	canvasPanel.setPosition(canvasPanelPos);
 	canvasPanel.add(canvasPanelTitle.setup(canvasPanelTitleStr));
 	canvasPanel.add(savePaintingBtn.setup(savePaintingBtnTxt));
+	canvasPanel.add(loadPaintingLabel.setup(loadPaintingLabelTxt));
+	canvasPanel.add(loadPaintingField.setup("Type filename.png here", ""));
 	canvasPanel.add(loadPaintingBtn.setup(loadPaintingBtnTxt));
 	canvasPanel.add(bgColorLabel.setup(canvasBgLabelTxt));
 	canvasPanel.add(fillRed.setup("<-> R", 0, 0, 255));
@@ -156,6 +158,16 @@ void ofApp::setup() {
 	savePaintingBtn.setTextColor(ofColor::black);
 	savePaintingBtn.setFillColor(ofColor::black);
 	savePaintingBtn.setBorderColor(ofColor::black);
+
+	loadPaintingLabel.setBackgroundColor(ofColor::black);
+	loadPaintingLabel.setTextColor(ofColor::white);
+	loadPaintingLabel.setFillColor(ofColor::black);
+	loadPaintingLabel.setBorderColor(ofColor::black);
+
+	loadPaintingField.setBackgroundColor(bgCol);
+	loadPaintingField.setTextColor(ofColor(0, 140));
+	loadPaintingField.setFillColor(ofColor::black);
+	loadPaintingField.setBorderColor(ofColor::black);
 
 	loadPaintingBtn.setBackgroundColor(bgCol);
 	loadPaintingBtn.setTextColor(ofColor::black);
@@ -190,6 +202,8 @@ void ofApp::setup() {
 	clearCanvasBtn.addListener(this, &ofApp::clearMainCanvas);
 	setCanvasBgBtn.addListener(this, &ofApp::fillMainCanvas);
 	savePaintingBtn.addListener(this, &ofApp::savePainting);
+	loadPaintingField.addListener(this, &ofApp::getTextFieldContent);
+	loadPaintingBtn.addListener(this, &ofApp::loadPainting);
 } /// end setup
 
 //--------------------------------------------------------------
@@ -199,6 +213,8 @@ void ofApp::exit() {
 	clearCanvasBtn.removeListener(this, &ofApp::clearMainCanvas);
 	setCanvasBgBtn.removeListener(this, &ofApp::fillMainCanvas);
 	savePaintingBtn.removeListener(this, &ofApp::savePainting);
+	loadPaintingField.removeListener(this, &ofApp::getTextFieldContent);
+	loadPaintingBtn.removeListener(this, &ofApp::loadPainting);
 }
 
 //--------------------------------------------------------------
@@ -364,7 +380,7 @@ void ofApp::updateMainCanvas() {
 	int y = ofGetMouseY();
 
 	mainCanvasFbo.begin();
-	brush.draw(x + (brushCanvasMagnify / 2), y - brushCanvasMagnify, 26, 26);
+	brush.draw(x + (brushCanvasMagnify / 2) - 1, y - brushCanvasMagnify, 26, 26);
 	mainCanvasFbo.end();
 }
 
@@ -390,7 +406,38 @@ void ofApp::savePainting() {
 	ofImage img;
 	img.setFromPixels(p);
 	img.saveImage(ofToDataPath("paintings/" + filename + ".png"));
-	cout << "Painting saved at [" << ofToDataPath("paintings/" + filename + ".png") << "]" << endl;
+	std::cout << "Painting saved at [" << ofToDataPath("paintings/" + filename + ".png") << "]" << endl;
+}
+
+//--------------------------------------------------------------
+void ofApp::getTextFieldContent(string& filename) {
+	loadPaintingFilename = filename;
+	cout << "Text field input: " << loadPaintingFilename << endl;
+}
+
+//--------------------------------------------------------------
+void ofApp::loadPainting() {
+	string filename = loadPaintingFilename;
+	std::cout << "Loading [" << filename << "]" << endl;
+	ofFile f;
+
+	if (!f.doesFileExist(ofToDataPath("paintings/" + filename))) {
+		std::cout << "File does not exist!" << endl;
+		return;
+	}
+
+	ofImage img;
+
+	img.load(ofToDataPath("paintings/" + filename));
+	ofPixels p;
+	img.getTexture().readToPixels(p);
+
+	mainCanvasFbo.begin();
+	ofClear(255, 255, 255, 0);
+	mainCanvasFbo.end();
+	mainCanvasFbo.getTexture().loadData(p);
+
+	std::cout << "Painting loaded!" << endl;
 }
 
 //--------------------------------------------------------------
@@ -410,7 +457,7 @@ void ofApp::updateBrush() {
 	brush.getTextureReference().setTextureMinMagFilter(GL_NEAREST, GL_NEAREST);
 	brush.getTextureReference().loadData(culledPix);
 
-	cout << "Brush updated!" << endl;
+	std::cout << "Brush updated!" << endl;
 
 	saveBrush(culledPix);
 }
@@ -426,13 +473,13 @@ void ofApp::saveBrushToFile(ofPixels& p) {
 	ofImage img;
 	img.setFromPixels(p);
 	img.saveImage(ofToDataPath("brushes/" + ofToString(selectedBrush) + ".png"));
-	cout << "Brush saved!" << endl;
+	std::cout << "Brush saved!" << endl;
 }
 
 //--------------------------------------------------------------
 void ofApp::loadBrush(int& brushId) {
 	/// Read every pixel of savedBrushFbos[brushId] into pix
-	cout << "Loading brush " << brushId << endl;
+	std::cout << "Loading brush " << brushId << endl;
 	ofPixels pix, biggifiedPix;
 	brushCanvasFbo.getTexture().setTextureMinMagFilter(GL_NEAREST, GL_NEAREST);
 	savedBrushFbos[brushId].getTexture().readToPixels(pix);
@@ -457,7 +504,7 @@ void ofApp::loadBrush(int& brushId) {
 	brushCanvasFbo.getTextureReference().setTextureMinMagFilter(GL_NEAREST, GL_NEAREST);
 	brushCanvasFbo.getTextureReference().loadData(biggifiedPix);
 
-	cout << "Brush loaded!" << endl;
+	std::cout << "Brush loaded!" << endl;
 
 	updateBrush();
 }
@@ -498,13 +545,14 @@ void ofApp::makeCanvasBg()
 {
 	/// ----- Main canvas
 
+	int blockSz = 13;
 	mainCanvasBgFbo.begin();
 	bool columnStartsGray = false;
-	for (int x = 0; x < mainCanvasSize.x; x += 10) {
-		if (x % 20 == 0 || x == 0) columnStartsGray = true;
+	for (int x = 0; x < mainCanvasSize.x; x += blockSz) {
+		if (x % (blockSz * 2) == 0 || x == 0) columnStartsGray = true;
 		else columnStartsGray = false;
-		for (int y = 0; y < mainCanvasSize.y; y += 10) {
-			if (y % 20 == 0 || y == 0) {
+		for (int y = 0; y < mainCanvasSize.y; y += blockSz) {
+			if (y % (blockSz * 2) == 0 || y == 0) {
 				if (columnStartsGray) ofSetColor(ofColor::lightGray);
 				else ofSetColor(ofColor::white);
 			}
@@ -513,7 +561,7 @@ void ofApp::makeCanvasBg()
 				else ofSetColor(ofColor::lightGray);
 			}
 			//ofSetColor(ofColor::green);
-			ofDrawRectangle(x, y, 10, 10);
+			ofDrawRectangle(x, y, blockSz, blockSz);
 		}
 	}
 	mainCanvasBgFbo.end();
