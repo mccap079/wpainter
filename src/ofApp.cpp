@@ -82,7 +82,7 @@ void ofApp::setup() {
 
 	/// ------ GUI
 
-	colorPanelPos = { brushCanvasRect.getRight() + windowMargin,
+	colorPanelPos = { savedBrushesPos.x + ((savedBrushRects[0].getWidth() + windowMargin) * rowLength - windowMargin),
 		brushCanvasRect.getTop() };
 
 	saveBrushBtn.addListener(this, &ofApp::updateBrush);
@@ -130,6 +130,10 @@ void ofApp::setup() {
 	clearBrushBtn.setTextColor(ofColor::black);
 	clearBrushBtn.setFillColor(ofColor::black);
 	clearBrushBtn.setBorderColor(ofColor::black);
+
+	loadBrushesFromFile();
+	int i = 0;
+	loadBrush(i);
 } /// end setup
 
 //--------------------------------------------------------------
@@ -143,6 +147,10 @@ void ofApp::update() {
 	drawCol = ofColor(red, green, blue, erase ? 0 : 255);
 	//colorPanel.setHeaderBackgroundColor(drawCol);
 	colorPreview.setBackgroundColor(drawCol);
+
+	int speed = 30;
+	int t = ofGetElapsedTimef() * speed;
+	selectionHighlight.setHsb(t % 255, 255, 255);
 }
 
 //--------------------------------------------------------------
@@ -186,17 +194,28 @@ void ofApp::draw() {
 
 	for (int i = 0; i < savedBrushRects.size(); i++) {
 		/// Border
-		ofSetColor(canvasBorderCol);
-		ofDrawRectangle(savedBrushRects[i].getPosition().x,
-			savedBrushRects[i].getPosition().y,
-			savedBrushRects[i].getWidth() + 2,
-			savedBrushRects[i].getHeight() + 2);
+		if (i == selectedBrush) {
+			ofSetColor(selectionHighlight);
+			ofDrawRectangle(savedBrushRects[i].getPosition().x,
+				savedBrushRects[i].getPosition().y,
+				savedBrushRects[i].getWidth() + 6,
+				savedBrushRects[i].getHeight() + 6);
+		}
+		else {
+			int borderSz = 2;
+			if (hoveredBrush == i) borderSz = 6;
+			ofSetColor(canvasBorderCol);
+			ofDrawRectangle(savedBrushRects[i].getPosition().x,
+				savedBrushRects[i].getPosition().y,
+				savedBrushRects[i].getWidth() + borderSz,
+				savedBrushRects[i].getHeight() + borderSz);
+		}
 		ofSetColor(ofColor::white);
 		ofDrawRectangle(savedBrushRects[i]);
-		//savedBrushFbos[i].draw(savedBrushRects[i]);
-	}
+		savedBrushFbos[i].draw(savedBrushRects[i]);
 
-	savedBrushFbos[0].draw(savedBrushRects[0]);
+		/// Selected brush highlight
+	}
 
 	/// ----- Brush paint
 
@@ -296,7 +315,7 @@ void ofApp::updateBrush() {
 	brushCanvasFbo.getTexture().readToPixels(pix);
 	culledPix.allocate(brush.getWidth(), brush.getHeight(), pix.getImageType());
 
-	for (int y = 0; y < brushCanvasFbo.getTexture().getWidth(); y += brushCanvasMagnify) { // Read as horizontal rows
+	for (int y = 0; y < brushCanvasFbo.getTexture().getWidth(); y += brushCanvasMagnify) {
 		for (int x = 0; x < brushCanvasFbo.getTexture().getHeight(); x += brushCanvasMagnify) {
 			culledPix.setColor(x / brushCanvasMagnify, y / brushCanvasMagnify, pix.getColor(x, y));
 		}
@@ -310,9 +329,71 @@ void ofApp::updateBrush() {
 	saveBrush(culledPix);
 }
 
+//--------------------------------------------------------------
 void ofApp::saveBrush(ofPixels& p) {
-	savedBrushFbos[0].getTextureReference().loadData(p);
+	savedBrushFbos[selectedBrush].getTextureReference().loadData(p);
+	saveBrushToFile(p);
+}
+
+//--------------------------------------------------------------
+void ofApp::saveBrushToFile(ofPixels& p) {
+	ofImage img;
+	img.setFromPixels(p);
+	img.saveImage(ofToDataPath("brushes/" + ofToString(selectedBrush) + ".png"));
 	cout << "Brush saved!" << endl;
+}
+
+//--------------------------------------------------------------
+void ofApp::loadBrush(int& brushId) {
+	/// Read every pixel of savedBrushFbos[brushId] into pix
+	cout << "Loading brush " << brushId << endl;
+	ofPixels pix, biggifiedPix;
+	brushCanvasFbo.getTexture().setTextureMinMagFilter(GL_NEAREST, GL_NEAREST);
+	savedBrushFbos[brushId].getTexture().readToPixels(pix);
+
+	/// Biggify pixels from pix to biggifiedPix
+	biggifiedPix.allocate(brushCanvasFbo.getWidth(), brushCanvasFbo.getHeight(), pix.getImageType());
+
+	/// For every pixel in brushCanvasFbo, check each pixel from pix 8 times
+	int xx = -1;
+	int yy = -1;
+	for (int y = 0; y < brushCanvasFbo.getTexture().getWidth(); y++) {
+		if (y % brushCanvasMagnify == 0)yy++;
+		for (int x = 0; x < brushCanvasFbo.getTexture().getHeight(); x++) {
+			if (x % brushCanvasMagnify == 0) {
+				xx++;
+				if (xx >= savedBrushRects[0].getWidth()) xx = 0;
+			}
+			biggifiedPix.setColor(x, y, pix.getColor(xx, yy));
+		}
+	}
+
+	brushCanvasFbo.getTextureReference().setTextureMinMagFilter(GL_NEAREST, GL_NEAREST);
+	brushCanvasFbo.getTextureReference().loadData(biggifiedPix);
+
+	cout << "Brush loaded!" << endl;
+}
+
+//--------------------------------------------------------------
+void ofApp::loadBrushesFromFile() {
+	int i = 0;
+	for (auto fbo : savedBrushFbos) {
+		ofImage img;
+		ofFile f;
+
+		if (!f.doesFileExist(ofToDataPath("brushes/" + ofToString(i) + ".png"))) return;
+
+		img.load(ofToDataPath("brushes/" + ofToString(i) + ".png"));
+		ofPixels p;
+		img.getTexture().readToPixels(p);
+
+		fbo.begin();
+		ofClear(255, 255, 255, 0);
+		fbo.end();
+		fbo.getTexture().loadData(p);
+
+		i++;
+	}
 }
 
 //--------------------------------------------------------------
@@ -381,6 +462,16 @@ void ofApp::keyReleased(int key) {
 
 //--------------------------------------------------------------
 void ofApp::mouseMoved(int x, int y) {
+	int savedBrushRectX = x + (savedBrushRects[0].getWidth() / 2);
+	int savedBrushRectY = y + (savedBrushRects[0].getHeight() / 2);
+
+	for (int i = 0; i < savedBrushRects.size(); i++) {
+		if (savedBrushRects[i].inside(savedBrushRectX, savedBrushRectY)) {
+			hoveredBrush = i;
+			return;
+		}
+		else hoveredBrush = -1;
+	}
 }
 
 //--------------------------------------------------------------
@@ -399,6 +490,17 @@ void ofApp::mousePressed(int x, int y, int button) {
 void ofApp::mouseReleased(int x, int y, int button) {
 	bPaintingInBrushCanvas = false;
 	bPaintingInMainCanvas = false;
+
+	int savedBrushRectX = x + (savedBrushRects[0].getWidth() / 2);
+	int savedBrushRectY = y + (savedBrushRects[0].getHeight() / 2);
+
+	for (int i = 0; i < savedBrushRects.size(); i++) {
+		if (savedBrushRects[i].inside(savedBrushRectX, savedBrushRectY)) {
+			selectedBrush = i;
+			loadBrush(i);
+			return;
+		}
+	}
 }
 
 //--------------------------------------------------------------

@@ -81,11 +81,16 @@ public:
 	/// Saved brushes collection
 
 	void saveBrush(ofPixels& p);
+	void loadBrush(int& brushId);
+	void saveBrushToFile(ofPixels& p);
+	void loadBrushesFromFile();
 
 	const int numSavedBrushes = 30;
 	glm::vec2 savedBrushesPos;
 	const int savedBrushesPadding = windowMargin;
 	int selectedBrush = 0;
+	int hoveredBrush = -1;
 	vector<ofFbo> savedBrushFbos;
 	vector<ofRectangle> savedBrushRects;
+	ofColor selectionHighlight;
 };
