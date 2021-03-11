@@ -78,9 +78,13 @@ void ofApp::setup() {
 		savedBrushFbos[i].end();
 	}
 
-	/// TODO: Load brushes from file
+	loadBrushesFromFile();
+	int i = 0;
+	loadBrush(i);
 
 	/// ------ GUI
+
+	/// Brush panel
 
 	colorPanelPos = { savedBrushesPos.x + ((savedBrushRects[0].getWidth() + windowMargin) * rowLength - windowMargin),
 		brushCanvasRect.getTop() };
@@ -88,19 +92,20 @@ void ofApp::setup() {
 	saveBrushBtn.addListener(this, &ofApp::updateBrush);
 	clearBrushBtn.addListener(this, &ofApp::clearBrushCanvas);
 
-	colorPanel.setup();
-	colorPanel.setPosition(colorPanelPos);
+	brushPanel.setup();
+	brushPanel.setPosition(colorPanelPos);
 
-	colorPanel.add(brushPanelTitle.setup(brushPanelTitleStr));
-	colorPanel.add(saveBrushBtn.setup(saveBrushButtonTxt));
-	colorPanel.add(colorPreview.setup(colorLabel));
-	colorPanel.add(red.setup("<-> R", 0, 0, 255));
-	colorPanel.add(green.setup("<-> G", 0, 0, 255));
-	colorPanel.add(blue.setup("<-> B", 0, 0, 255));
-	colorPanel.add(erase.setup("< Eraser", false));
-	colorPanel.add(clearBrushBtn.setup(clearBrushBtnTxt));
+	brushPanel.add(brushPanelTitle.setup(brushPanelTitleStr));
+	brushPanel.add(saveBrushBtn.setup(saveBrushButtonTxt));
+	brushPanel.add(colorPreview.setup(colorLabel));
+	brushPanel.add(red.setup("<-> R", 0, 0, 255));
+	brushPanel.add(green.setup("<-> G", 0, 0, 255));
+	brushPanel.add(blue.setup("<-> B", 0, 0, 255));
+	brushPanel.add(erase.setup("< Eraser", false));
+	brushPanel.add(clearBrushBtn.setup(clearBrushBtnTxt));
 
 	ofColor bgCol = ofColor::lightGray;
+	ofColor warningBgCol = ofColor::pink;
 
 	saveBrushBtn.setBackgroundColor(bgCol);
 	saveBrushBtn.setTextColor(ofColor::black);
@@ -126,27 +131,81 @@ void ofApp::setup() {
 	erase.setTextColor(ofColor::black);
 	erase.setFillColor(ofColor::black);
 	erase.setBorderColor(ofColor::black);
-	clearBrushBtn.setBackgroundColor(bgCol);
+	clearBrushBtn.setBackgroundColor(warningBgCol);
 	clearBrushBtn.setTextColor(ofColor::black);
 	clearBrushBtn.setFillColor(ofColor::black);
 	clearBrushBtn.setBorderColor(ofColor::black);
 
-	loadBrushesFromFile();
-	int i = 0;
-	loadBrush(i);
+	/// Main canvas panel
+	canvasPanelPos = { brushPanel.getPosition().x + brushPanel.getWidth() + windowMargin,
+		brushCanvasRect.getTop() };
+
+	canvasPanel.setup();
+	canvasPanel.setPosition(canvasPanelPos);
+	canvasPanel.add(canvasPanelTitle.setup(canvasPanelTitleStr));
+	canvasPanel.add(savePaintingBtn.setup(savePaintingBtnTxt));
+	canvasPanel.add(loadPaintingBtn.setup(loadPaintingBtnTxt));
+	canvasPanel.add(bgColorLabel.setup(canvasBgLabelTxt));
+	canvasPanel.add(fillRed.setup("<-> R", 0, 0, 255));
+	canvasPanel.add(fillGreen.setup("<-> G", 0, 0, 255));
+	canvasPanel.add(fillBlue.setup("<-> B", 0, 0, 255));
+	canvasPanel.add(setCanvasBgBtn.setup(setCanvasBgTxt));
+	canvasPanel.add(clearCanvasBtn.setup(clearCanvasBtnTxt));
+
+	savePaintingBtn.setBackgroundColor(bgCol);
+	savePaintingBtn.setTextColor(ofColor::black);
+	savePaintingBtn.setFillColor(ofColor::black);
+	savePaintingBtn.setBorderColor(ofColor::black);
+
+	loadPaintingBtn.setBackgroundColor(bgCol);
+	loadPaintingBtn.setTextColor(ofColor::black);
+	loadPaintingBtn.setFillColor(ofColor::black);
+	loadPaintingBtn.setBorderColor(ofColor::black);
+
+	setCanvasBgBtn.setBackgroundColor(bgCol);
+	setCanvasBgBtn.setTextColor(ofColor::black);
+	setCanvasBgBtn.setFillColor(ofColor::black);
+	setCanvasBgBtn.setBorderColor(ofColor::black);
+
+	bgColorLabel.setBackgroundColor(bgCol);
+	bgColorLabel.setTextColor(ofColor::black);
+	bgColorLabel.setFillColor(ofColor::black);
+	bgColorLabel.setBorderColor(ofColor::black);
+
+	fillRed.setBackgroundColor(bgCol);
+	fillRed.setTextColor(ofColor::black);
+	fillRed.setFillColor(ofColor::red);
+	fillGreen.setBackgroundColor(bgCol);
+	fillGreen.setTextColor(ofColor::black);
+	fillGreen.setFillColor(ofColor::green);
+	fillBlue.setBackgroundColor(bgCol);
+	fillBlue.setTextColor(ofColor::black);
+	fillBlue.setFillColor(ofColor::blue);
+
+	clearCanvasBtn.setBackgroundColor(warningBgCol);
+	clearCanvasBtn.setTextColor(ofColor::black);
+	clearCanvasBtn.setFillColor(ofColor::black);
+	clearCanvasBtn.setBorderColor(ofColor::black);
+
+	clearCanvasBtn.addListener(this, &ofApp::clearMainCanvas);
+	setCanvasBgBtn.addListener(this, &ofApp::fillMainCanvas);
 } /// end setup
 
 //--------------------------------------------------------------
 void ofApp::exit() {
 	saveBrushBtn.removeListener(this, &ofApp::updateBrush);
 	clearBrushBtn.removeListener(this, &ofApp::clearBrushCanvas);
+	clearCanvasBtn.removeListener(this, &ofApp::clearMainCanvas);
+	setCanvasBgBtn.removeListener(this, &ofApp::fillMainCanvas);
 }
 
 //--------------------------------------------------------------
 void ofApp::update() {
 	drawCol = ofColor(red, green, blue, erase ? 0 : 255);
-	//colorPanel.setHeaderBackgroundColor(drawCol);
 	colorPreview.setBackgroundColor(drawCol);
+
+	ofColor c = ofColor(fillRed, fillGreen, fillBlue);
+	bgColorLabel.setBackgroundColor(c);
 
 	int speed = 30;
 	int t = ofGetElapsedTimef() * speed;
@@ -155,7 +214,6 @@ void ofApp::update() {
 
 //--------------------------------------------------------------
 void ofApp::draw() {
-	//ofBackground(ofColor::lightGray);
 	ofSetColor(ofColor::red);
 	ofDrawBitmapString("FPS: " + ofToString(ofGetFrameRate()), windowMargin, 15);
 
@@ -232,7 +290,8 @@ void ofApp::draw() {
 
 	/// ----- Draw UI
 
-	colorPanel.draw();
+	brushPanel.draw();
+	canvasPanel.draw();
 }
 
 //--------------------------------------------------------------
@@ -308,6 +367,20 @@ void ofApp::updateMainCanvas() {
 }
 
 //--------------------------------------------------------------
+void ofApp::clearMainCanvas() {
+	mainCanvasFbo.begin();
+	ofClear(255, 255, 255, 0);
+	mainCanvasFbo.end();
+}
+
+//--------------------------------------------------------------
+void ofApp::fillMainCanvas() {
+	mainCanvasFbo.begin();
+	ofClear(fillRed, fillGreen, fillBlue, 255);
+	mainCanvasFbo.end();
+}
+
+//--------------------------------------------------------------
 void ofApp::updateBrush() {
 	ofPixels pix, culledPix;
 
@@ -372,6 +445,8 @@ void ofApp::loadBrush(int& brushId) {
 	brushCanvasFbo.getTextureReference().loadData(biggifiedPix);
 
 	cout << "Brush loaded!" << endl;
+
+	updateBrush();
 }
 
 //--------------------------------------------------------------

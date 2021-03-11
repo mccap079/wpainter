@@ -56,12 +56,14 @@ public:
 	/// Canvas drawing stuff
 
 	void updateMainCanvas();
+	void clearMainCanvas();
+	void fillMainCanvas();
 
 	ofFbo mainCanvasFbo;
 
 	bool bPaintingInMainCanvas = false;
 
-	/// Color selection
+	/// Brush GUI
 	const string brushPanelTitleStr = "<<< BRUSH SETTINGS";
 	const string updateBrushButtonTxt = "< Update brush";
 	const string saveBrushButtonTxt = "< Save brush";
@@ -69,7 +71,7 @@ public:
 	const string clearBrushBtnTxt = "< Clear brush canvas";
 
 	ofColor drawCol = ofColor::black;
-	ofxPanel colorPanel;
+	ofxPanel brushPanel;
 	ofxLabel brushPanelTitle;
 	ofxButton saveBrushBtn;
 	ofxLabel colorPreview;
@@ -77,6 +79,23 @@ public:
 	ofxToggle erase;
 	ofxButton clearBrushBtn;
 	glm::vec2 colorPanelPos;
+
+	/// Main canvas GUI
+	const string canvasPanelTitleStr = "^^^ CANVAS SETTINGS";
+	const string savePaintingBtnTxt = "< Export painting";
+	const string loadPaintingBtnTxt = "< Import painting";
+	const string canvasBgLabelTxt = "Fill canvas color:";
+	const string setCanvasBgTxt = "< Set fill color";
+	const string clearCanvasBtnTxt = "< Clear canvas";
+	ofxPanel canvasPanel;
+	glm::vec2 canvasPanelPos;
+	ofxLabel canvasPanelTitle;
+	ofxButton savePaintingBtn;
+	ofxButton loadPaintingBtn;
+	ofxButton setCanvasBgBtn;
+	ofxLabel bgColorLabel;
+	ofxFloatSlider fillRed, fillGreen, fillBlue;
+	ofxButton clearCanvasBtn;
 
 	/// Saved brushes collection
 
@@ -94,3 +113,6 @@ public:
 	vector<ofRectangle> savedBrushRects;
 	ofColor selectionHighlight;
 };
+
+/// When brush is selected from collection, it should automatically be set to `brush`
+/// 
