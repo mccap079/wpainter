@@ -45,6 +45,8 @@ void ofApp::setup() {
 
 	brush.allocate(brushCanvasComputeSize.x, brushCanvasComputeSize.y, OF_IMAGE_COLOR_ALPHA);
 
+	brushAnchor.setup(brushCanvasPos, brushCanvasDisplaySize);
+
 	/// ----- Saved brushes
 
 	savedBrushesPos =
@@ -263,6 +265,8 @@ void ofApp::update() {
 	int speed = 30;
 	int t = ofGetElapsedTimef() * speed;
 	selectionHighlight.setHsb(t % 255, 255, 255);
+
+	brushAnchor.update();
 }
 
 //--------------------------------------------------------------
@@ -334,6 +338,8 @@ void ofApp::draw() {
 	ofSetColor(ofColor::white);
 	brushCanvasFbo.draw(brushCanvasRect.getLeft() + (brushCanvasDisplaySize.x / 2),
 		brushCanvasRect.getTop() + (brushCanvasDisplaySize.x / 2));
+
+	brushAnchor.draw();
 
 	/// ----- Main canvas paint
 
@@ -414,6 +420,7 @@ void ofApp::setBrushAnchor_topLeft(bool& b) {
 	if (b) {
 		bAnchorCenter = false;
 		setAnchorBtn_center = false;
+		brushAnchor.animate(bAnchorCenter);
 	}
 }
 
@@ -422,6 +429,7 @@ void ofApp::setBrushAnchor_center(bool& b) {
 	if (b) {
 		bAnchorCenter = true;
 		setAnchorBtn_topLeft = false;
+		brushAnchor.animate(bAnchorCenter);
 	}
 }
 

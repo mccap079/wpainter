@@ -4,6 +4,7 @@
 #include "Button.h"
 #include "ofxGui.h"
 #include "ScrollBar.h"
+#include "BrushAnchor.h"
 
 class ofApp : public ofBaseApp {
 public:
@@ -55,6 +56,8 @@ public:
 	ofImage brush;
 
 	bool bPaintingInBrushCanvas = false;
+
+	BrushAnchor brushAnchor;
 
 	/// Canvas drawing stuff
 
