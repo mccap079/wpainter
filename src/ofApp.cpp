@@ -422,6 +422,9 @@ void ofApp::setBrushAnchor_topLeft(bool& b) {
 		setAnchorBtn_center = false;
 		brushAnchor.animate(bAnchorCenter);
 	}
+	else {
+		if (setAnchorBtn_center == false) setAnchorBtn_topLeft = true;
+	}
 }
 
 //--------------------------------------------------------------
@@ -430,6 +433,9 @@ void ofApp::setBrushAnchor_center(bool& b) {
 		bAnchorCenter = true;
 		setAnchorBtn_topLeft = false;
 		brushAnchor.animate(bAnchorCenter);
+	}
+	else {
+		if (setAnchorBtn_topLeft == false) setAnchorBtn_center = true;
 	}
 }
 
