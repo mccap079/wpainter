@@ -3,6 +3,7 @@
 #include "ofMain.h"
 #include "Button.h"
 #include "ofxGui.h"
+#include "ScrollBar.h"
 
 class ofApp : public ofBaseApp {
 public:
@@ -45,6 +46,8 @@ public:
 	void updateBrushCanvas();
 	void updateBrush();
 	void clearBrushCanvas();
+	void setBrushAnchor_topLeft(bool& b);
+	void setBrushAnchor_center(bool& b);
 
 	glm::vec2 posInGrid(int gridSize, int x, int y);
 	glm::vec2 prevBrushCanvasGridPoint;
@@ -71,6 +74,10 @@ public:
 	const string updateBrushButtonTxt = "< Update brush";
 	const string saveBrushButtonTxt = "< Save brush";
 	const string colorLabel = "Set color:";
+	const string setAnchorLabelTxt = "Set anchor:";
+	const string setAnchorBtnTxt_topLeft = "< Top left";
+	const string setAnchorBtnTxt_center = "< Center";
+	const string startOverLabelTxt = "Start over:";
 	const string clearBrushBtnTxt = "< Clear brush canvas";
 
 	ofColor drawCol = ofColor::black;
@@ -80,8 +87,13 @@ public:
 	ofxLabel colorPreview;
 	ofxFloatSlider red, green, blue;
 	ofxToggle erase;
+	ofxLabel setAnchorLabel;
+	ofxToggle setAnchorBtn_topLeft;
+	ofxToggle setAnchorBtn_center;
+	ofxLabel startOverLabel_brushCanvas;
 	ofxButton clearBrushBtn;
 	glm::vec2 colorPanelPos;
+	bool bAnchorCenter = false;
 
 	/// Main canvas GUI
 	const string canvasPanelTitleStr = "^^^ CANVAS SETTINGS";
@@ -101,6 +113,7 @@ public:
 	ofxButton setCanvasBgBtn;
 	ofxLabel bgColorLabel;
 	ofxFloatSlider fillRed, fillGreen, fillBlue;
+	ofxLabel startOverLabel_mainCanvas;
 	ofxButton clearCanvasBtn;
 
 	string loadPaintingFilename;

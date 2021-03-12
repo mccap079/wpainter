@@ -89,9 +89,6 @@ void ofApp::setup() {
 	colorPanelPos = { savedBrushesPos.x + ((savedBrushRects[0].getWidth() + windowMargin) * rowLength - windowMargin),
 		brushCanvasRect.getTop() };
 
-	saveBrushBtn.addListener(this, &ofApp::updateBrush);
-	clearBrushBtn.addListener(this, &ofApp::clearBrushCanvas);
-
 	brushPanel.setup();
 	brushPanel.setPosition(colorPanelPos);
 
@@ -102,6 +99,10 @@ void ofApp::setup() {
 	brushPanel.add(green.setup("<-> G", 0, 0, 255));
 	brushPanel.add(blue.setup("<-> B", 0, 0, 255));
 	brushPanel.add(erase.setup("< Eraser", false));
+	brushPanel.add(setAnchorLabel.setup(setAnchorLabelTxt));
+	brushPanel.add(setAnchorBtn_topLeft.setup(setAnchorBtnTxt_topLeft, true));
+	brushPanel.add(setAnchorBtn_center.setup(setAnchorBtnTxt_center, false));
+	brushPanel.add(startOverLabel_brushCanvas.setup(startOverLabelTxt));
 	brushPanel.add(clearBrushBtn.setup(clearBrushBtnTxt));
 
 	ofColor bgCol = ofColor::lightGray;
@@ -131,10 +132,36 @@ void ofApp::setup() {
 	erase.setTextColor(ofColor::black);
 	erase.setFillColor(ofColor::black);
 	erase.setBorderColor(ofColor::black);
+
+	setAnchorLabel.setBackgroundColor(ofColor::black);
+	setAnchorLabel.setTextColor(ofColor::white);
+	setAnchorLabel.setFillColor(ofColor::black);
+	setAnchorLabel.setBorderColor(ofColor::black);
+
+	setAnchorBtn_topLeft.setBackgroundColor(bgCol);
+	setAnchorBtn_topLeft.setTextColor(ofColor::black);
+	setAnchorBtn_topLeft.setFillColor(ofColor::black);
+	setAnchorBtn_topLeft.setBorderColor(ofColor::black);
+
+	setAnchorBtn_center.setBackgroundColor(bgCol);
+	setAnchorBtn_center.setTextColor(ofColor::black);
+	setAnchorBtn_center.setFillColor(ofColor::black);
+	setAnchorBtn_center.setBorderColor(ofColor::black);
+
+	startOverLabel_brushCanvas.setBackgroundColor(ofColor::black);
+	startOverLabel_brushCanvas.setTextColor(ofColor::white);
+	startOverLabel_brushCanvas.setFillColor(ofColor::black);
+	startOverLabel_brushCanvas.setBorderColor(ofColor::black);
+
 	clearBrushBtn.setBackgroundColor(warningBgCol);
 	clearBrushBtn.setTextColor(ofColor::black);
 	clearBrushBtn.setFillColor(ofColor::black);
 	clearBrushBtn.setBorderColor(ofColor::black);
+
+	saveBrushBtn.addListener(this, &ofApp::updateBrush);
+	clearBrushBtn.addListener(this, &ofApp::clearBrushCanvas);
+	setAnchorBtn_topLeft.addListener(this, &ofApp::setBrushAnchor_topLeft);
+	setAnchorBtn_center.addListener(this, &ofApp::setBrushAnchor_center);
 
 	/// Main canvas panel
 	canvasPanelPos = { brushPanel.getPosition().x + brushPanel.getWidth() + windowMargin,
@@ -152,6 +179,7 @@ void ofApp::setup() {
 	canvasPanel.add(fillGreen.setup("<-> G", 0, 0, 255));
 	canvasPanel.add(fillBlue.setup("<-> B", 0, 0, 255));
 	canvasPanel.add(setCanvasBgBtn.setup(setCanvasBgTxt));
+	canvasPanel.add(startOverLabel_mainCanvas.setup(startOverLabelTxt));
 	canvasPanel.add(clearCanvasBtn.setup(clearCanvasBtnTxt));
 
 	savePaintingBtn.setBackgroundColor(bgCol);
@@ -194,6 +222,11 @@ void ofApp::setup() {
 	fillBlue.setTextColor(ofColor::black);
 	fillBlue.setFillColor(ofColor::blue);
 
+	startOverLabel_mainCanvas.setBackgroundColor(ofColor::black);
+	startOverLabel_mainCanvas.setTextColor(ofColor::white);
+	startOverLabel_mainCanvas.setFillColor(ofColor::black);
+	startOverLabel_mainCanvas.setBorderColor(ofColor::black);
+
 	clearCanvasBtn.setBackgroundColor(warningBgCol);
 	clearCanvasBtn.setTextColor(ofColor::black);
 	clearCanvasBtn.setFillColor(ofColor::black);
@@ -209,6 +242,8 @@ void ofApp::setup() {
 //--------------------------------------------------------------
 void ofApp::exit() {
 	saveBrushBtn.removeListener(this, &ofApp::updateBrush);
+	setAnchorBtn_topLeft.removeListener(this, &ofApp::setBrushAnchor_topLeft);
+	setAnchorBtn_center.removeListener(this, &ofApp::setBrushAnchor_center);
 	clearBrushBtn.removeListener(this, &ofApp::clearBrushCanvas);
 	clearCanvasBtn.removeListener(this, &ofApp::clearMainCanvas);
 	setCanvasBgBtn.removeListener(this, &ofApp::fillMainCanvas);
@@ -375,12 +410,34 @@ void ofApp::clearBrushCanvas() {
 }
 
 //--------------------------------------------------------------
+void ofApp::setBrushAnchor_topLeft(bool& b) {
+	if (b) {
+		bAnchorCenter = false;
+		setAnchorBtn_center = false;
+	}
+}
+
+//--------------------------------------------------------------
+void ofApp::setBrushAnchor_center(bool& b) {
+	if (b) {
+		bAnchorCenter = true;
+		setAnchorBtn_topLeft = false;
+	}
+}
+
+//--------------------------------------------------------------
 void ofApp::updateMainCanvas() {
 	int x = ofGetMouseX();
 	int y = ofGetMouseY();
 
+	glm::vec2 anchor = { x + (brushCanvasMagnify / 2) - 1, y - brushCanvasMagnify };
+	if (bAnchorCenter) {
+		anchor = { (x - (brushCanvasComputeSize.x / 2)) + (brushCanvasMagnify / 2) - 1,
+			(y - (brushCanvasComputeSize.y / 2)) - brushCanvasMagnify };
+	}
+
 	mainCanvasFbo.begin();
-	brush.draw(x + (brushCanvasMagnify / 2) - 1, y - brushCanvasMagnify, 26, 26);
+	brush.draw(anchor.x, anchor.y, 26, 26);
 	mainCanvasFbo.end();
 }
 
