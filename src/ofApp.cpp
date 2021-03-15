@@ -4,16 +4,19 @@
 void ofApp::setup() {
 	ofDisableAntiAliasing();
 	ofLogToConsole();
+	ofSetFrameRate(60);
 
 	mainCanvasPos = { windowMargin + (mainCanvasSize.x / 2),
-						(windowMargin * 2) + (mainCanvasSize.y / 2) };
-	brushCanvasPos = { windowMargin + (brushCanvasDisplaySize.y / 2),
-						 (windowMargin * 2) + mainCanvasSize.y + windowMargin + (brushCanvasDisplaySize.y / 2) };
+						status.getHeight() + (windowMargin * 2) + (mainCanvasSize.y / 2) };
 
 	mainCanvasRect.set(mainCanvasPos.x - (mainCanvasSize.x / 2),
 		mainCanvasPos.y - (mainCanvasSize.y / 2),
 		mainCanvasSize.x,
 		mainCanvasSize.y);
+
+	brushCanvasPos = { windowMargin + (brushCanvasDisplaySize.y / 2),
+						 mainCanvasRect.getBottom() + windowMargin + (brushCanvasDisplaySize.y / 2) };
+
 	brushCanvasRect.set(brushCanvasPos.x - (brushCanvasDisplaySize.x / 2),
 		brushCanvasPos.y - (brushCanvasDisplaySize.y / 2),
 		brushCanvasDisplaySize.x,
@@ -46,6 +49,11 @@ void ofApp::setup() {
 	brush.allocate(brushCanvasComputeSize.x, brushCanvasComputeSize.y, OF_IMAGE_COLOR_ALPHA);
 
 	brushAnchor.setup(brushCanvasPos, brushCanvasDisplaySize);
+
+	/// ----- Status bars
+
+	status.setup({ mainCanvasRect.getLeft(),
+		windowMargin }, mainCanvasRect.getWidth());
 
 	/// ----- Saved brushes
 
@@ -239,6 +247,10 @@ void ofApp::setup() {
 	savePaintingBtn.addListener(this, &ofApp::savePainting);
 	loadPaintingField.addListener(this, &ofApp::getTextFieldContent);
 	loadPaintingBtn.addListener(this, &ofApp::loadPainting);
+
+	loadPaintingFilename = "null";
+
+	status.say("Welcome artist ^ - ^");
 } /// end setup
 
 //--------------------------------------------------------------
@@ -267,12 +279,13 @@ void ofApp::update() {
 	selectionHighlight.setHsb(t % 255, 255, 255);
 
 	brushAnchor.update();
+
+	status.update();
 }
 
 //--------------------------------------------------------------
 void ofApp::draw() {
-	ofSetColor(ofColor::red);
-	ofDrawBitmapString("FPS: " + ofToString(ofGetFrameRate()), windowMargin, 15);
+	ofBackground(ofColor::lightGray - 20);
 
 	/// ----- Draw main canvas
 
@@ -304,6 +317,10 @@ void ofApp::draw() {
 		brushCanvasPos.y,
 		brushCanvasDisplaySize.x,
 		brushCanvasDisplaySize.y);
+
+	/// ----- Canvas status bars
+
+	status.draw();
 
 	/// ----- Saved brushes
 
@@ -339,8 +356,6 @@ void ofApp::draw() {
 	brushCanvasFbo.draw(brushCanvasRect.getLeft() + (brushCanvasDisplaySize.x / 2),
 		brushCanvasRect.getTop() + (brushCanvasDisplaySize.x / 2));
 
-	brushAnchor.draw();
-
 	/// ----- Main canvas paint
 
 	if (bPaintingInMainCanvas) updateMainCanvas();
@@ -351,6 +366,14 @@ void ofApp::draw() {
 
 	brushPanel.draw();
 	canvasPanel.draw();
+	brushAnchor.draw();
+
+	/// ----- Debug stuff
+
+	/*ofSetColor(ofColor::red);
+	ofDrawBitmapString("FPS: " + ofToString(ofGetFrameRate()),
+		windowMargin + 5,
+		windowMargin + status.getHeight() - 5);*/
 }
 
 //--------------------------------------------------------------
@@ -413,6 +436,8 @@ void ofApp::clearBrushCanvas() {
 	brushCanvasFbo.begin();
 	ofClear(255, 255, 255, 0);
 	brushCanvasFbo.end();
+
+	status.say("Brush canvas cleared!");
 }
 
 //--------------------------------------------------------------
@@ -441,13 +466,13 @@ void ofApp::setBrushAnchor_center(bool& b) {
 
 //--------------------------------------------------------------
 void ofApp::updateMainCanvas() {
-	int x = ofGetMouseX();
-	int y = ofGetMouseY();
+	int x = ofGetMouseX() - mainCanvasRect.getLeft();
+	int y = ofGetMouseY() - mainCanvasRect.getTop();
 
-	glm::vec2 anchor = { x + (brushCanvasMagnify / 2) - 1, y - brushCanvasMagnify };
+	glm::vec2 anchor = { (x + (brushCanvasComputeSize.x / 2)),
+			y + (brushCanvasComputeSize.y / 2) };
 	if (bAnchorCenter) {
-		anchor = { (x - (brushCanvasComputeSize.x / 2)) + (brushCanvasMagnify / 2) - 1,
-			(y - (brushCanvasComputeSize.y / 2)) - brushCanvasMagnify };
+		anchor = { x,y };
 	}
 
 	mainCanvasFbo.begin();
@@ -460,6 +485,8 @@ void ofApp::clearMainCanvas() {
 	mainCanvasFbo.begin();
 	ofClear(255, 255, 255, 0);
 	mainCanvasFbo.end();
+
+	status.say("Main canvas cleared!");
 }
 
 //--------------------------------------------------------------
@@ -467,6 +494,31 @@ void ofApp::fillMainCanvas() {
 	mainCanvasFbo.begin();
 	ofClear(fillRed, fillGreen, fillBlue, 255);
 	mainCanvasFbo.end();
+
+	if (ofColor(fillRed, fillGreen, fillBlue) == ofColor::lime) {
+		if (ofRandom(1.0) > 0.8) status.say("U about 2 steal christmas");
+	}
+	else if (ofColor(fillRed, fillGreen, fillBlue) == ofColor::red) {
+		if (ofRandom(1.0) > 0.9) status.say("H A I L   S A T A N");
+	}
+	else if (ofColor(fillRed, fillGreen, fillBlue) == ofColor::blue) {
+		if (ofRandom(1.0) > 0.8) status.say("Cold, yet soothing...");
+	}
+	else if (ofColor(fillRed, fillGreen, fillBlue) == ofColor::black) {
+		if (ofRandom(1.0) > 0.8) status.say("Gaze unto the void");
+	}
+	else if (ofColor(fillRed, fillGreen, fillBlue) == ofColor::white) {
+		if (ofRandom(1.0) > 0.8) status.say("A fluorescent white box glows before you.");
+	}
+	else if (ofColor(fillRed, fillGreen, fillBlue) == ofColor::magenta) {
+		if (ofRandom(1.0) > 0.8) status.say("YAAAAAAAAAAS");
+	}
+	else if (ofColor(fillRed, fillGreen, fillBlue) == ofColor::cyan) {
+		if (ofRandom(1.0) > 0.8) status.say("Not a single cloud.");
+	}
+	else if (ofColor(fillRed, fillGreen, fillBlue) == ofColor::yellow) {
+		if (ofRandom(1.0) > 0.8) status.say("Urine trouble!");
+	}
 }
 
 //--------------------------------------------------------------
@@ -477,7 +529,8 @@ void ofApp::savePainting() {
 	ofImage img;
 	img.setFromPixels(p);
 	img.saveImage(ofToDataPath("paintings/" + filename + ".png"));
-	std::cout << "Painting saved at [" << ofToDataPath("paintings/" + filename + ".png") << "]" << endl;
+	status.say("Beautiful!!!!!!!!!! Painting saved as \"" + ofToDataPath("paintings/" + filename + ".png") + "\" :D",
+		StatusBar::UrgencyLevel::URGENCY_LEVEL_PARTY);
 }
 
 //--------------------------------------------------------------
@@ -493,13 +546,19 @@ void ofApp::loadPainting() {
 	ofFile f;
 
 	if (!f.doesFileExist(ofToDataPath("paintings/" + filename))) {
-		std::cout << "File does not exist!" << endl;
+		cout << "File " << ofToDataPath("paintings/" + filename) << " doesnt exist" << endl;
+		status.say("File named \"" + filename + "\" doesn't exist in \"paintings/\" folder!",
+			StatusBar::UrgencyLevel::URGENCY_LEVEL_WARNING);
 		return;
 	}
 
 	ofImage img;
 
-	img.load(ofToDataPath("paintings/" + filename));
+	if (!img.load(ofToDataPath("paintings/" + filename))) {
+		status.say("Error loading file \"" + filename + "\" :( Is it corrupt?",
+			StatusBar::UrgencyLevel::URGENCY_LEVEL_WARNING);
+		return;
+	};
 	ofPixels p;
 	img.getTexture().readToPixels(p);
 
@@ -508,7 +567,8 @@ void ofApp::loadPainting() {
 	mainCanvasFbo.end();
 	mainCanvasFbo.getTexture().loadData(p);
 
-	std::cout << "Painting loaded!" << endl;
+	loadPaintingFilename = "null";
+	status.say("Painting loaded!");
 }
 
 //--------------------------------------------------------------

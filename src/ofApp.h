@@ -3,8 +3,9 @@
 #include "ofMain.h"
 #include "Button.h"
 #include "ofxGui.h"
-#include "ScrollBar.h"
+//#include "ScrollBar.h"
 #include "BrushAnchor.h"
+#include "StatusBar.h"
 
 class ofApp : public ofBaseApp {
 public:
@@ -136,7 +137,8 @@ public:
 	vector<ofFbo> savedBrushFbos;
 	vector<ofRectangle> savedBrushRects;
 	ofColor selectionHighlight;
-};
 
-/// When brush is selected from collection, it should automatically be set to `brush`
-/// 
+	/// Status bars
+
+	StatusBar status;
+};

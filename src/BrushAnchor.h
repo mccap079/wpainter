@@ -35,8 +35,11 @@ public:
 	void draw() {
 		if (animState == ANIM_STATE_FLASH) {
 			ofPushStyle();
-			ofSetColor(col);
+			ofSetColor(ofColor::black);
+			ofDrawRectangle(m_pos.x, m_pos.y, 12, 52);
+			ofDrawRectangle(m_pos.x, m_pos.y, 52, 12);
 			ofFill();
+			ofSetColor(col);
 			ofDrawRectangle(m_pos.x, m_pos.y, 10, 50);
 			ofDrawRectangle(m_pos.x, m_pos.y, 50, 10);
 			ofPopStyle();
