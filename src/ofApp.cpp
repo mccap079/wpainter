@@ -504,28 +504,19 @@ void ofApp::fillMainCanvas() {
 	mainCanvasFbo.end();
 
 	if (ofColor(fillRed, fillGreen, fillBlue) == ofColor::lime) {
-		if (ofRandom(1.0) > 0.8) status.say("U about 2 steal christmas");
+		if (ofRandom(1.0) > 0.8) status.say("Green is neat!");
 	}
 	else if (ofColor(fillRed, fillGreen, fillBlue) == ofColor::red) {
 		if (ofRandom(1.0) > 0.9) status.say("H A I L   S A T A N");
 	}
 	else if (ofColor(fillRed, fillGreen, fillBlue) == ofColor::blue) {
-		if (ofRandom(1.0) > 0.8) status.say("Cold, yet soothing...");
+		if (ofRandom(1.0) > 0.8) status.say("Very blue!");
 	}
 	else if (ofColor(fillRed, fillGreen, fillBlue) == ofColor::black) {
 		if (ofRandom(1.0) > 0.8) status.say("Gaze unto the void");
 	}
 	else if (ofColor(fillRed, fillGreen, fillBlue) == ofColor::white) {
-		if (ofRandom(1.0) > 0.8) status.say("A fluorescent white box glows before you.");
-	}
-	else if (ofColor(fillRed, fillGreen, fillBlue) == ofColor::magenta) {
-		if (ofRandom(1.0) > 0.8) status.say("YAAAAAAAAAAS");
-	}
-	else if (ofColor(fillRed, fillGreen, fillBlue) == ofColor::cyan) {
-		if (ofRandom(1.0) > 0.8) status.say("Not a single cloud.");
-	}
-	else if (ofColor(fillRed, fillGreen, fillBlue) == ofColor::yellow) {
-		if (ofRandom(1.0) > 0.8) status.say("Urine trouble!");
+		if (ofRandom(1.0) > 0.8) status.say("White is nice!");
 	}
 }
 
