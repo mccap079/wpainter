@@ -33,7 +33,7 @@ public:
 
 		for (int i = 0; i < msg.size(); i++)
 			m_txtBuffer.push_back(msg[i]);
-
+        
 		m_txtPos = {
 			m_txtStartPos,
 			m_pos.y + m_height - m_borderSz - 3 };
@@ -79,20 +79,21 @@ public:
 			}
 			break;
 		}
+        
 
 		if (!m_txtStr.empty()) m_floatCounter += ofGetLastFrameTime() * m_speed;;
 
 		if ((int)m_floatCounter != m_prevFloatCounterVal) {
 			m_txtPos.x -= m_charLen;
-			/// If we're not yet at end of status bar
-			if (m_txtPos.x > m_txtEndPos) {
-				/// Add chars from buffer if the buffer still has chars
-				if (!m_txtBuffer.empty()) {
-					m_txtStr += m_txtBuffer.front();
-					m_txtBuffer.pop_front();
-				}
-			}
-			else {
+            
+            /// Add chars from buffer if the buffer still has chars
+            if (!m_txtBuffer.empty()) {
+                m_txtStr += m_txtBuffer.front();
+                m_txtBuffer.pop_front();
+            }
+            
+			/// Erase chars that pass the end of the status bar
+			if (m_txtPos.x <= m_txtEndPos) {
 				m_txtStr.erase(0, 1);
 				m_txtPos.x += m_charLen;
 			}
@@ -135,6 +136,9 @@ public:
 	float getHeight() {
 		return m_height;
 	}
+    float getBottom(){
+        return m_barRect.getBottom();
+    }
 private:
 	glm::vec2 m_pos;
 	float m_length;

@@ -46,6 +46,7 @@ public:
 	/// Brush drawing stuff
 
 	void updateBrushCanvas();
+    void saveBrushBtnAction();
 	void updateBrush();
 	void clearBrushCanvas();
 	void setBrushAnchor_topLeft(bool& b);

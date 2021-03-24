@@ -52,8 +52,9 @@ void ofApp::setup() {
 
 	/// ----- Status bars
 
-	status.setup({ mainCanvasRect.getLeft(),
-		windowMargin }, mainCanvasRect.getWidth());
+    float fpsTxtLen = ( 88 + ( windowMargin * 2 ));
+	status.setup({ mainCanvasRect.getLeft() + fpsTxtLen,
+		windowMargin }, mainCanvasRect.getWidth() - fpsTxtLen);
 
 	/// ----- Saved brushes
 
@@ -168,7 +169,7 @@ void ofApp::setup() {
 	clearBrushBtn.setFillColor(ofColor::black);
 	clearBrushBtn.setBorderColor(ofColor::black);
 
-	saveBrushBtn.addListener(this, &ofApp::updateBrush);
+	saveBrushBtn.addListener(this, &ofApp::saveBrushBtnAction);
 	clearBrushBtn.addListener(this, &ofApp::clearBrushCanvas);
 	setAnchorBtn_topLeft.addListener(this, &ofApp::setBrushAnchor_topLeft);
 	setAnchorBtn_center.addListener(this, &ofApp::setBrushAnchor_center);
@@ -255,7 +256,7 @@ void ofApp::setup() {
 
 //--------------------------------------------------------------
 void ofApp::exit() {
-	saveBrushBtn.removeListener(this, &ofApp::updateBrush);
+	saveBrushBtn.removeListener(this, &ofApp::saveBrushBtnAction);
 	setAnchorBtn_topLeft.removeListener(this, &ofApp::setBrushAnchor_topLeft);
 	setAnchorBtn_center.removeListener(this, &ofApp::setBrushAnchor_center);
 	clearBrushBtn.removeListener(this, &ofApp::clearBrushCanvas);
@@ -286,6 +287,13 @@ void ofApp::update() {
 //--------------------------------------------------------------
 void ofApp::draw() {
 	ofBackground(ofColor::lightGray - 20);
+    
+    ofSetColor(ofColor::black);
+    ofDrawBitmapString("FPS: " + ofToString(ofGetFrameRate()),
+                       mainCanvasRect.getLeft(),
+                       status.getBottom() - 5);
+    
+    cout << ofPoint(mainCanvasPos.x, windowMargin + 10) << endl;
 
 	/// ----- Draw main canvas
 
@@ -437,7 +445,7 @@ void ofApp::clearBrushCanvas() {
 	ofClear(255, 255, 255, 0);
 	brushCanvasFbo.end();
 
-	status.say("Brush canvas cleared!");
+    status.say("Brush canvas cleared!", StatusBar::UrgencyLevel::URGENCY_LEVEL_WARNING);
 }
 
 //--------------------------------------------------------------
@@ -486,7 +494,7 @@ void ofApp::clearMainCanvas() {
 	ofClear(255, 255, 255, 0);
 	mainCanvasFbo.end();
 
-	status.say("Main canvas cleared!");
+	status.say("Canvas cleared!", StatusBar::UrgencyLevel::URGENCY_LEVEL_WARNING);
 }
 
 //--------------------------------------------------------------
@@ -526,10 +534,14 @@ void ofApp::savePainting() {
 	ofPixels p;
 	mainCanvasFbo.getTexture().readToPixels(p);
 	string filename = ofGetTimestampString("%F_%H-%M-%S");
+    ofDirectory paintingsFolder(ofToDataPath("paintings/"));
+    if(!paintingsFolder.exists()){
+        paintingsFolder.create(true);
+    }
 	ofImage img;
 	img.setFromPixels(p);
 	img.saveImage(ofToDataPath("paintings/" + filename + ".png"));
-	status.say("Beautiful!!!!!!!!!! Painting saved as \"" + ofToDataPath("paintings/" + filename + ".png") + "\" :D",
+	status.say("Beautiful!!!!!!!!!! Painting saved @ \"" + paintingsFolder.getAbsolutePath() + "\\" + filename + ".png" + "\" :D",
 		StatusBar::UrgencyLevel::URGENCY_LEVEL_PARTY);
 }
 
@@ -572,6 +584,12 @@ void ofApp::loadPainting() {
 }
 
 //--------------------------------------------------------------
+void ofApp::saveBrushBtnAction(){
+    updateBrush();
+    status.say("Brush saved!");
+}
+
+//--------------------------------------------------------------
 void ofApp::updateBrush() {
 	ofPixels pix, culledPix;
 
@@ -588,8 +606,6 @@ void ofApp::updateBrush() {
 	brush.getTextureReference().setTextureMinMagFilter(GL_NEAREST, GL_NEAREST);
 	brush.getTextureReference().loadData(culledPix);
 
-	std::cout << "Brush updated!" << endl;
-
 	saveBrush(culledPix);
 }
 
@@ -604,7 +620,6 @@ void ofApp::saveBrushToFile(ofPixels& p) {
 	ofImage img;
 	img.setFromPixels(p);
 	img.saveImage(ofToDataPath("brushes/" + ofToString(selectedBrush) + ".png"));
-	std::cout << "Brush saved!" << endl;
 }
 
 //--------------------------------------------------------------
@@ -635,8 +650,8 @@ void ofApp::loadBrush(int& brushId) {
 	brushCanvasFbo.getTextureReference().setTextureMinMagFilter(GL_NEAREST, GL_NEAREST);
 	brushCanvasFbo.getTextureReference().loadData(biggifiedPix);
 
-	std::cout << "Brush loaded!" << endl;
-
+//    std::cout << "Brush loaded!" << endl;
+    status.say("Brush loaded!");
 	updateBrush();
 }
 
