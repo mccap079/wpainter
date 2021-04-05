@@ -14,3 +14,19 @@ Todo
  - Better painting loader
  - Autofill functions for brush canvas
  - Bleed fx
+
+## Installation
+
+### macOS
+
+Download the macOS release from Releases page, unzip and launch the bootlegWendypaint/wpainter.app.
+
+NOTE:
+ - You'll probably need to right-click and select Open from the warning dialog because I'm an unidentified developer.
+ - Due to ["app translocation"](https://lapcatsoftware.com/articles/app-translocation.html) you may notice that no brushes have been loaded. If this is the case, quit the app, drag wpainter.app out of the bootlegWendypaint folder, drag it back in, then relaunch the app. Once you do this the issue should not happen again.
+
+### Windows
+
+Release TBD
+
+Download the Windows release from the Releases page, unzip and launch the bootlegWendypaint/wpainter.exe.
