@@ -52,7 +52,7 @@ void ofApp::setup() {
 
 	/// ----- Status bars
 
-    float fpsTxtLen = ( 88 + ( windowMargin * 2 ));
+	float fpsTxtLen = (88 + (windowMargin * 2));
 	status.setup({ mainCanvasRect.getLeft() + fpsTxtLen,
 		windowMargin }, mainCanvasRect.getWidth() - fpsTxtLen);
 
@@ -287,13 +287,13 @@ void ofApp::update() {
 //--------------------------------------------------------------
 void ofApp::draw() {
 	ofBackground(ofColor::lightGray - 20);
-    
-    ofSetColor(ofColor::black);
-    ofDrawBitmapString("FPS: " + ofToString(ofGetFrameRate()),
-                       mainCanvasRect.getLeft(),
-                       status.getBottom() - 5);
-    
-    cout << ofPoint(mainCanvasPos.x, windowMargin + 10) << endl;
+
+	ofSetColor(ofColor::black);
+	ofDrawBitmapString("FPS: " + ofToString(ofGetFrameRate()),
+		mainCanvasRect.getLeft(),
+		status.getBottom() - 5);
+
+	cout << ofPoint(mainCanvasPos.x, windowMargin + 10) << endl;
 
 	/// ----- Draw main canvas
 
@@ -376,12 +376,9 @@ void ofApp::draw() {
 	canvasPanel.draw();
 	brushAnchor.draw();
 
-	/// ----- Debug stuff
+	/// ----- Modals
 
-	/*ofSetColor(ofColor::red);
-	ofDrawBitmapString("FPS: " + ofToString(ofGetFrameRate()),
-		windowMargin + 5,
-		windowMargin + status.getHeight() - 5);*/
+	setCanvasDimsModal.draw(setCanvasDimsModalSz);
 }
 
 //--------------------------------------------------------------
@@ -445,7 +442,7 @@ void ofApp::clearBrushCanvas() {
 	ofClear(255, 255, 255, 0);
 	brushCanvasFbo.end();
 
-    status.say("Brush canvas cleared!", StatusBar::UrgencyLevel::URGENCY_LEVEL_WARNING);
+	status.say("Brush canvas cleared!", StatusBar::UrgencyLevel::URGENCY_LEVEL_WARNING);
 }
 
 //--------------------------------------------------------------
@@ -525,10 +522,10 @@ void ofApp::savePainting() {
 	ofPixels p;
 	mainCanvasFbo.getTexture().readToPixels(p);
 	string filename = ofGetTimestampString("%F_%H-%M-%S");
-    ofDirectory paintingsFolder(ofToDataPath("paintings/"));
-    if(!paintingsFolder.exists()){
-        paintingsFolder.create(true);
-    }
+	ofDirectory paintingsFolder(ofToDataPath("paintings/"));
+	if (!paintingsFolder.exists()) {
+		paintingsFolder.create(true);
+	}
 	ofImage img;
 	img.setFromPixels(p);
 	img.saveImage(ofToDataPath("paintings/" + filename + ".png"));
@@ -575,9 +572,9 @@ void ofApp::loadPainting() {
 }
 
 //--------------------------------------------------------------
-void ofApp::saveBrushBtnAction(){
-    updateBrush();
-    status.say("Brush saved!");
+void ofApp::saveBrushBtnAction() {
+	updateBrush();
+	status.say("Brush saved!");
 }
 
 //--------------------------------------------------------------
@@ -641,8 +638,8 @@ void ofApp::loadBrush(int& brushId) {
 	brushCanvasFbo.getTextureReference().setTextureMinMagFilter(GL_NEAREST, GL_NEAREST);
 	brushCanvasFbo.getTextureReference().loadData(biggifiedPix);
 
-//    std::cout << "Brush loaded!" << endl;
-    status.say("Brush loaded!");
+	//    std::cout << "Brush loaded!" << endl;
+	status.say("Brush loaded!");
 	updateBrush();
 }
 

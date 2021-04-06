@@ -6,6 +6,7 @@
 //#include "ScrollBar.h"
 #include "BrushAnchor.h"
 #include "StatusBar.h"
+#include "Modal.h"
 
 class ofApp : public ofBaseApp {
 public:
@@ -46,7 +47,7 @@ public:
 	/// Brush drawing stuff
 
 	void updateBrushCanvas();
-    void saveBrushBtnAction();
+	void saveBrushBtnAction();
 	void updateBrush();
 	void clearBrushCanvas();
 	void setBrushAnchor_topLeft(bool& b);
@@ -142,4 +143,8 @@ public:
 	/// Status bars
 
 	StatusBar status;
+
+	/// Set canvas size
+	Modal setCanvasDimsModal;
+	glm::vec2 setCanvasDimsModalSz = { 600, 400 };
 };
