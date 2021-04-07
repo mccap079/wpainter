@@ -95,6 +95,23 @@ void ofApp::setup() {
 
 	/// ------ GUI
 
+	setupGui(rowLength);
+
+	/// ----- Modals
+
+	setCanvasDimsModal.setup();
+	setCanvasDimsGui.setup();
+	setCanvasDimsGui.setPosition(setCanvasDimsModal.getPos());
+
+	setCanvasDimsGui.add(setWidthLabel.setup("Width (1-" + ofToString(ofGetScreenWidth() - 100) + ")", ""));
+
+	loadPaintingFilename = "null";
+
+	status.say("Welcome artist ^ - ^");
+} /// end setup
+
+//--------------------------------------------------------------
+void ofApp::setupGui(int& rowLength) {
 	/// Brush panel
 
 	colorPanelPos = { savedBrushesPos.x + ((savedBrushRects[0].getWidth() + windowMargin) * rowLength - windowMargin),
@@ -248,11 +265,7 @@ void ofApp::setup() {
 	savePaintingBtn.addListener(this, &ofApp::savePainting);
 	loadPaintingField.addListener(this, &ofApp::getTextFieldContent);
 	loadPaintingBtn.addListener(this, &ofApp::loadPainting);
-
-	loadPaintingFilename = "null";
-
-	status.say("Welcome artist ^ - ^");
-} /// end setup
+}
 
 //--------------------------------------------------------------
 void ofApp::exit() {
@@ -292,8 +305,6 @@ void ofApp::draw() {
 	ofDrawBitmapString("FPS: " + ofToString(ofGetFrameRate()),
 		mainCanvasRect.getLeft(),
 		status.getBottom() - 5);
-
-	cout << ofPoint(mainCanvasPos.x, windowMargin + 10) << endl;
 
 	/// ----- Draw main canvas
 
@@ -379,6 +390,8 @@ void ofApp::draw() {
 	/// ----- Modals
 
 	setCanvasDimsModal.draw(setCanvasDimsModalSz);
+	setCanvasDimsGui.setPosition(setCanvasDimsModal.getPos());
+	setCanvasDimsGui.draw();
 }
 
 //--------------------------------------------------------------

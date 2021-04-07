@@ -75,6 +75,10 @@ public:
 
 	bool bPaintingInMainCanvas = false;
 
+	/// ----- Guis
+
+	void setupGui(int& rowLength);
+
 	/// Brush GUI
 	const string brushPanelTitleStr = "<<< BRUSH SETTINGS";
 	const string updateBrushButtonTxt = "< Update brush";
@@ -147,4 +151,6 @@ public:
 	/// Set canvas size
 	Modal setCanvasDimsModal;
 	glm::vec2 setCanvasDimsModalSz = { 600, 400 };
+	ofxGuiGroup setCanvasDimsGui;
+	ofxLabel setWidthLabel;
 };

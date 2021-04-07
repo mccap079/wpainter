@@ -69,6 +69,11 @@ public:
 	// Top left corner
 	void setPos(glm::vec2 pos) {
 		m_pos = pos;
+		setRect();
+	}
+
+	glm::vec2 getPos() {
+		return m_pos;
 	}
 
 	void setText(string txt) {
@@ -82,6 +87,10 @@ public:
 
 	float getWidth() {
 		return m_btnRect.getWidth();
+	}
+
+	float getHeight() {
+		return m_btnRect.getHeight();
 	}
 
 	bool isReleased = false;
