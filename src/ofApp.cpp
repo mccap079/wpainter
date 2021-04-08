@@ -99,11 +99,18 @@ void ofApp::setup() {
 
 	/// ----- Modals
 
-	setCanvasDimsModal.setup();
-	setCanvasDimsGui.setup();
-	setCanvasDimsGui.setPosition(setCanvasDimsModal.getPos());
+	setCanvasDimsContainerPos_invisible = { -1000,-1000 };
 
-	setCanvasDimsGui.add(setWidthLabel.setup("Width (1-" + ofToString(ofGetScreenWidth() - 100) + ")", ""));
+	setCanvasDimsModal.setup();
+	ofJson settings = { {"width", setCanvasDimsModalSz.x - setCanvasDimsModal.getBorderSz() * 2} };
+
+	setCanvasDimsContainer = setCanvasDimsGui.addContainer("Set canvas dims", settings);
+	setCanvasDimsContainer->setup();
+	setCanvasDimsContainer->setPosition(setCanvasDimsContainerPos_invisible);
+	setCanvasDimsContainer->add(setCanvasDimsLabel.set("Set canvas size", ""));
+	setCanvasDimsContainer->add<ofxGuiTextField>(setWidthInput.set("X", "1-" + ofToString(ofGetScreenWidth() - 100)));
+	setCanvasDimsContainer->add<ofxGuiTextField>(setHeightInput.set("Y", "1-" + ofToString(ofGetScreenHeight() - 100)));
+	/// ------
 
 	loadPaintingFilename = "null";
 
@@ -295,6 +302,11 @@ void ofApp::update() {
 	brushAnchor.update();
 
 	status.update();
+
+	/// ----- Modals
+	setCanvasDimsContainerPos_visible = {
+		setCanvasDimsModal.getPos().x - setCanvasDimsContainer->getWidth() / 2,
+		setCanvasDimsModal.getPos().y - (setCanvasDimsModalSz.y / 2) + setCanvasDimsModal.getBorderSz() };
 }
 
 //--------------------------------------------------------------
@@ -390,8 +402,7 @@ void ofApp::draw() {
 	/// ----- Modals
 
 	setCanvasDimsModal.draw(setCanvasDimsModalSz);
-	setCanvasDimsGui.setPosition(setCanvasDimsModal.getPos());
-	setCanvasDimsGui.draw();
+	setCanvasDimsContainer->setPosition(setCanvasDimsContainerPos_visible);
 }
 
 //--------------------------------------------------------------

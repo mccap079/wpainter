@@ -61,6 +61,10 @@ public:
 		return m_pos;
 	}
 
+	int getBorderSz() {
+		return m_borderSz;
+	}
+
 private:
 	glm::vec2 m_pos;
 	ofColor m_modalCol = ofColor::lightGray;

@@ -39,8 +39,8 @@ public:
 		ofSetColor(ofColor::black);
 		ofDrawRectangle(m_btnRect.getCenter().x,
 			m_btnRect.getCenter().y,
-			m_size.x + 3,
-			m_size.y + 3);
+			m_size.x + 2,
+			m_size.y + 2);
 		ofSetColor(m_currentCol_bg);
 		ofDrawRectangle(m_btnRect.getCenter(),
 			m_size.x,

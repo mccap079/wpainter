@@ -3,6 +3,7 @@
 #include "ofMain.h"
 #include "Button.h"
 #include "ofxGui.h"
+#include "ofxGuiExtended2.h"
 //#include "ScrollBar.h"
 #include "BrushAnchor.h"
 #include "StatusBar.h"
@@ -150,7 +151,10 @@ public:
 
 	/// Set canvas size
 	Modal setCanvasDimsModal;
-	glm::vec2 setCanvasDimsModalSz = { 600, 400 };
-	ofxGuiGroup setCanvasDimsGui;
-	ofxLabel setWidthLabel;
+	glm::vec2 setCanvasDimsModalSz = { 220, 150 };
+	glm::vec2 setCanvasDimsContainerPos_visible, setCanvasDimsContainerPos_invisible;
+	ofxGui setCanvasDimsGui;
+	ofxGuiContainer* setCanvasDimsContainer;
+	ofParameter<string> setCanvasDimsLabel;
+	ofParameter<string> setWidthInput, setHeightInput;
 };
