@@ -4,7 +4,7 @@
 
 ---
 
-Wendypaint.com clone as a windows and macos native app. Not including a few features. Credit for the underlying concept goes to Kim Asendorf, creator of the now defunct wendypaint.com, who has nothing to do with this project otherwise. This has been built from scratch (using openframeworks) to match the original functionality.
+Wendypaint.com clone as a windows and macos native app. Not including a few features. Credit for the underlying idea goes to Kim Asendorf, creator of the now defunct wendypaint.com, who has nothing to do with this project otherwise. This has been built from scratch (using openframeworks) to match the original functionality.
 
 Todo:
  - Change canvas size
@@ -27,6 +27,8 @@ NOTE:
 Release TBD
 
 Download the Windows release from the Releases page, unzip and launch the bootlegWendypaint/wpainter.exe.
+
+## Usage
 
 ### Loading brush packs
 
