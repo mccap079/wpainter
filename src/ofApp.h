@@ -30,11 +30,12 @@ public:
 
 	/// Canvas stuff
 
-	void makeCanvasBg();
+	void makeMainCanvasBg();
+	void makeBrushCanvasBg();
 	ofFbo mainCanvasBgFbo, brushCanvasBgFbo;
 
 	const int windowMargin = 10;
-	const glm::vec2 mainCanvasSize = { 960, 600 };
+	glm::vec2 mainCanvasSize = { 960, 600 };
 	const int brushCanvasMagnify = 8;
 	const glm::vec2 brushCanvasComputeSize = { 25, 25 };
 	const glm::vec2 brushCanvasDisplaySize = { brushCanvasComputeSize.x * brushCanvasMagnify,
@@ -111,6 +112,8 @@ public:
 	const string savePaintingBtnTxt = "< Export painting";
 	const string loadPaintingLabelTxt = "Import painting:";
 	const string loadPaintingBtnTxt = "< Import";
+	const string setSizeLabelTxt = "Set canvas size:";
+	const string setSizeBtnTxt = "< Set size...";
 	const string canvasBgLabelTxt = "Fill canvas color:";
 	const string setCanvasBgTxt = "< Fill canvas";
 	const string clearCanvasBtnTxt = "< Clear canvas";
@@ -121,6 +124,8 @@ public:
 	ofxLabel loadPaintingLabel;
 	ofxTextField loadPaintingField;
 	ofxButton loadPaintingBtn;
+	ofxLabel setSizeLabel;
+	ofxButton setSizeBtn;
 	ofxButton setCanvasBgBtn;
 	ofxLabel bgColorLabel;
 	ofxFloatSlider fillRed, fillGreen, fillBlue;
@@ -149,10 +154,13 @@ public:
 
 	StatusBar status;
 
-	/// Set canvas size
+	/// Set canvas size modal
+	void ShowSetSizeModal();
+	void setCanvasDims(int& i);
+
+	const glm::vec2 maxCanvasSz = { ofGetScreenWidth() * 2, ofGetScreenHeight() * 4 };
 	Modal setCanvasDimsModal;
 	glm::vec2 setCanvasDimsModalSz = { 220, 150 };
-	glm::vec2 setCanvasDimsContainerPos_visible, setCanvasDimsContainerPos_invisible;
 	ofxGui setCanvasDimsGui;
 	ofxGuiContainer* setCanvasDimsContainer;
 	ofParameter<string> setCanvasDimsLabel;

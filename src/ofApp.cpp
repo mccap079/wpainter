@@ -32,7 +32,8 @@ void ofApp::setup() {
 	ofClear(255, 255, 255, 0);
 	brushCanvasBgFbo.end();
 
-	makeCanvasBg();
+	makeMainCanvasBg();
+	makeBrushCanvasBg();
 
 	prevBrushCanvasGridPoint = { -100,-100 };
 
@@ -99,17 +100,17 @@ void ofApp::setup() {
 
 	/// ----- Modals
 
-	setCanvasDimsContainerPos_invisible = { -1000,-1000 };
-
-	setCanvasDimsModal.setup();
+	setCanvasDimsModal.setup({ ofGetWidth() / 2, ofGetHeight() / 2 });
 	ofJson settings = { {"width", setCanvasDimsModalSz.x - setCanvasDimsModal.getBorderSz() * 2} };
 
 	setCanvasDimsContainer = setCanvasDimsGui.addContainer("Set canvas dims", settings);
 	setCanvasDimsContainer->setup();
-	setCanvasDimsContainer->setPosition(setCanvasDimsContainerPos_invisible);
+	setCanvasDimsContainer->setPosition(setCanvasDimsModal.getPos());
 	setCanvasDimsContainer->add(setCanvasDimsLabel.set("Set canvas size", ""));
-	setCanvasDimsContainer->add<ofxGuiTextField>(setWidthInput.set("X", "1-" + ofToString(ofGetScreenWidth() - 100)));
-	setCanvasDimsContainer->add<ofxGuiTextField>(setHeightInput.set("Y", "1-" + ofToString(ofGetScreenHeight() - 100)));
+	setCanvasDimsContainer->add<ofxGuiTextField>(setWidthInput.set("X", "1-" + ofToString(maxCanvasSz.x)));
+	setCanvasDimsContainer->add<ofxGuiTextField>(setHeightInput.set("Y", "1-" + ofToString(maxCanvasSz.y)));
+
+	ofAddListener(setCanvasDimsModal.okBtnPressed, this, &ofApp::setCanvasDims);
 	/// ------
 
 	loadPaintingFilename = "null";
@@ -209,6 +210,9 @@ void ofApp::setupGui(int& rowLength) {
 	canvasPanel.add(loadPaintingLabel.setup(loadPaintingLabelTxt));
 	canvasPanel.add(loadPaintingField.setup("Type filename.png here", ""));
 	canvasPanel.add(loadPaintingBtn.setup(loadPaintingBtnTxt));
+	canvasPanel.add(setSizeLabel.setup(setSizeLabelTxt));
+	canvasPanel.add(setSizeBtn.setup(setSizeBtnTxt));
+
 	canvasPanel.add(bgColorLabel.setup(canvasBgLabelTxt));
 	canvasPanel.add(fillRed.setup("<-> R", 0, 0, 255));
 	canvasPanel.add(fillGreen.setup("<-> G", 0, 0, 255));
@@ -236,6 +240,16 @@ void ofApp::setupGui(int& rowLength) {
 	loadPaintingBtn.setTextColor(ofColor::black);
 	loadPaintingBtn.setFillColor(ofColor::black);
 	loadPaintingBtn.setBorderColor(ofColor::black);
+
+	setSizeLabel.setBackgroundColor(ofColor::black);
+	setSizeLabel.setTextColor(ofColor::white);
+	setSizeLabel.setFillColor(ofColor::black);
+	setSizeLabel.setBorderColor(ofColor::black);
+
+	setSizeBtn.setBackgroundColor(bgCol);
+	setSizeBtn.setTextColor(ofColor::black);
+	setSizeBtn.setFillColor(ofColor::black);
+	setSizeBtn.setBorderColor(ofColor::black);
 
 	setCanvasBgBtn.setBackgroundColor(bgCol);
 	setCanvasBgBtn.setTextColor(ofColor::black);
@@ -272,6 +286,7 @@ void ofApp::setupGui(int& rowLength) {
 	savePaintingBtn.addListener(this, &ofApp::savePainting);
 	loadPaintingField.addListener(this, &ofApp::getTextFieldContent);
 	loadPaintingBtn.addListener(this, &ofApp::loadPainting);
+	setSizeBtn.addListener(this, &ofApp::ShowSetSizeModal);
 }
 
 //--------------------------------------------------------------
@@ -285,6 +300,10 @@ void ofApp::exit() {
 	savePaintingBtn.removeListener(this, &ofApp::savePainting);
 	loadPaintingField.removeListener(this, &ofApp::getTextFieldContent);
 	loadPaintingBtn.removeListener(this, &ofApp::loadPainting);
+	setSizeBtn.removeListener(this, &ofApp::ShowSetSizeModal);
+
+	setCanvasDimsModal.exit();
+	ofRemoveListener(setCanvasDimsModal.okBtnPressed, this, &ofApp::setCanvasDims);
 }
 
 //--------------------------------------------------------------
@@ -303,10 +322,7 @@ void ofApp::update() {
 
 	status.update();
 
-	/// ----- Modals
-	setCanvasDimsContainerPos_visible = {
-		setCanvasDimsModal.getPos().x - setCanvasDimsContainer->getWidth() / 2,
-		setCanvasDimsModal.getPos().y - (setCanvasDimsModalSz.y / 2) + setCanvasDimsModal.getBorderSz() };
+	setCanvasDimsModal.update();
 }
 
 //--------------------------------------------------------------
@@ -402,7 +418,16 @@ void ofApp::draw() {
 	/// ----- Modals
 
 	setCanvasDimsModal.draw(setCanvasDimsModalSz);
-	setCanvasDimsContainer->setPosition(setCanvasDimsContainerPos_visible);
+
+	ofSetRectMode(OF_RECTMODE_CORNER);
+	setCanvasDimsContainer->setPosition({
+		setCanvasDimsModal.getPos().x - setCanvasDimsContainer->getWidth() / 2,
+		setCanvasDimsModal.getPos().y - (setCanvasDimsModalSz.y / 2) + setCanvasDimsModal.getBorderSz() });
+}
+
+//--------------------------------------------------------------
+void ofApp::ShowSetSizeModal() {
+	setCanvasDimsModal.toggleVisible(true);
 }
 
 //--------------------------------------------------------------
@@ -462,6 +487,9 @@ void ofApp::updateBrushCanvas() {
 
 //--------------------------------------------------------------
 void ofApp::clearBrushCanvas() {
+	/// First check if a modal is active
+	if (setCanvasDimsModal.isVisible()) return;
+
 	brushCanvasFbo.begin();
 	ofClear(255, 255, 255, 0);
 	brushCanvasFbo.end();
@@ -471,6 +499,9 @@ void ofApp::clearBrushCanvas() {
 
 //--------------------------------------------------------------
 void ofApp::setBrushAnchor_topLeft(bool& b) {
+	/// First check if a modal is active
+	if (setCanvasDimsModal.isVisible()) return;
+
 	if (b) {
 		bAnchorCenter = false;
 		setAnchorBtn_center = false;
@@ -483,6 +514,9 @@ void ofApp::setBrushAnchor_topLeft(bool& b) {
 
 //--------------------------------------------------------------
 void ofApp::setBrushAnchor_center(bool& b) {
+	/// First check if a modal is active
+	if (setCanvasDimsModal.isVisible()) return;
+
 	if (b) {
 		bAnchorCenter = true;
 		setAnchorBtn_topLeft = false;
@@ -511,6 +545,9 @@ void ofApp::updateMainCanvas() {
 
 //--------------------------------------------------------------
 void ofApp::clearMainCanvas() {
+	/// First check if a modal is active
+	if (setCanvasDimsModal.isVisible()) return;
+
 	mainCanvasFbo.begin();
 	ofClear(255, 255, 255, 0);
 	mainCanvasFbo.end();
@@ -520,6 +557,9 @@ void ofApp::clearMainCanvas() {
 
 //--------------------------------------------------------------
 void ofApp::fillMainCanvas() {
+	/// First check if a modal is active
+	if (setCanvasDimsModal.isVisible()) return;
+
 	mainCanvasFbo.begin();
 	ofClear(fillRed, fillGreen, fillBlue, 255);
 	mainCanvasFbo.end();
@@ -542,7 +582,45 @@ void ofApp::fillMainCanvas() {
 }
 
 //--------------------------------------------------------------
+void ofApp::setCanvasDims(int& i) {
+	if (setWidthInput.get().find_first_not_of("0123456789") != std::string::npos) {
+		status.say("Invalid width input: whole numbers within range only! Action cancelled.", StatusBar::UrgencyLevel::URGENCY_LEVEL_WARNING);
+		return;
+	}
+	else if (setHeightInput.get().find_first_not_of("0123456789") != std::string::npos) {
+		status.say("Invalid height input: whole numbers within range only! Action cancelled.", StatusBar::UrgencyLevel::URGENCY_LEVEL_WARNING);
+		return;
+	}
+
+	int w = ofToInt(setWidthInput.get());
+	int h = ofToInt(setHeightInput.get());
+
+	if (w < 0) w = 1;
+	else if (w > maxCanvasSz.x) w = maxCanvasSz.x;
+
+	if (h < 1) h = 1;
+	else if (h > maxCanvasSz.y) h = maxCanvasSz.y;
+
+	mainCanvasSize = { w, h };
+	mainCanvasFbo.allocate(mainCanvasSize.x, mainCanvasSize.y, GL_RGBA);
+	mainCanvasBgFbo.allocate(mainCanvasSize.x, mainCanvasSize.y, GL_RGB);
+	mainCanvasBgFbo.begin();
+	ofClear(255, 255, 255, 0);
+	mainCanvasBgFbo.end();
+	makeMainCanvasBg();
+	mainCanvasPos = { windowMargin + (mainCanvasSize.x / 2),
+						status.getHeight() + (windowMargin * 2) + (mainCanvasSize.y / 2) };
+	mainCanvasRect.set(mainCanvasPos.x - (mainCanvasSize.x / 2),
+		mainCanvasPos.y - (mainCanvasSize.y / 2),
+		mainCanvasSize.x,
+		mainCanvasSize.y);
+}
+
+//--------------------------------------------------------------
 void ofApp::savePainting() {
+	/// First check if a modal is active
+	if (setCanvasDimsModal.isVisible()) return;
+
 	ofPixels p;
 	mainCanvasFbo.getTexture().readToPixels(p);
 	string filename = ofGetTimestampString("%F_%H-%M-%S");
@@ -559,12 +637,18 @@ void ofApp::savePainting() {
 
 //--------------------------------------------------------------
 void ofApp::getTextFieldContent(string& filename) {
+	/// First check if a modal is active
+	if (setCanvasDimsModal.isVisible()) return;
+
 	loadPaintingFilename = filename;
 	cout << "Text field input: " << loadPaintingFilename << endl;
 }
 
 //--------------------------------------------------------------
 void ofApp::loadPainting() {
+	/// First check if a modal is active
+	if (setCanvasDimsModal.isVisible()) return;
+
 	string filename = loadPaintingFilename;
 	std::cout << "Loading [" << filename << "]" << endl;
 	ofFile f;
@@ -597,6 +681,9 @@ void ofApp::loadPainting() {
 
 //--------------------------------------------------------------
 void ofApp::saveBrushBtnAction() {
+	/// First check if a modal is currently active
+	if (setCanvasDimsModal.isVisible()) return;
+
 	updateBrush();
 	status.say("Brush saved!");
 }
@@ -693,14 +780,13 @@ void ofApp::loadBrushesFromFile() {
 glm::vec2 ofApp::posInGrid(int gridSize, int x, int y) ///via https://stackoverflow.com/a/36795011/1757149
 {
 	glm::vec2 result = { x, y }; /// 199, 199
-	result.x = (int)(result.x / gridSize) * gridSize; /// (199 / 8 ) * 8
+	result.x = (int)(result.x / gridSize) * gridSize;
 	result.y = (int)(result.y / gridSize) * gridSize;
 	return result;
 }
 
 //--------------------------------------------------------------
-void ofApp::makeCanvasBg()
-{
+void ofApp::makeMainCanvasBg() {
 	/// ----- Main canvas
 
 	int blockSz = 13;
@@ -723,11 +809,15 @@ void ofApp::makeCanvasBg()
 		}
 	}
 	mainCanvasBgFbo.end();
+}
 
+//--------------------------------------------------------------
+void ofApp::makeBrushCanvasBg()
+{
 	/// ----- Brush canvas
 
 	brushCanvasBgFbo.begin();
-	columnStartsGray = false;
+	bool columnStartsGray = false;
 	for (int x = 0; x < brushCanvasDisplaySize.x; x += brushCanvasMagnify) {
 		if (x % (brushCanvasMagnify * 2) == 0 || x == 0) columnStartsGray = true;
 		else columnStartsGray = false;
@@ -770,12 +860,18 @@ void ofApp::mouseMoved(int x, int y) {
 
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button) {
+	if (setCanvasDimsModal.isVisible()) return;
 	bPaintingInBrushCanvas = brushCanvasRect.inside(x, y) ? 1 : 0;
 	bPaintingInMainCanvas = mainCanvasRect.inside(x, y) ? 1 : 0;
 }
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button) {
+	/// ----- Modals
+	setCanvasDimsModal.mousePressed(x, y);
+	if (setCanvasDimsModal.isVisible()) return;
+
+	/// ----- Canvas painting
 	bPaintingInBrushCanvas = brushCanvasRect.inside(x, y) ? 1 : 0;
 	bPaintingInMainCanvas = mainCanvasRect.inside(x, y) ? 1 : 0;
 }
@@ -795,6 +891,9 @@ void ofApp::mouseReleased(int x, int y, int button) {
 			return;
 		}
 	}
+
+	/// ----- Modals
+	setCanvasDimsModal.mouseReleased(x, y);
 }
 
 //--------------------------------------------------------------
