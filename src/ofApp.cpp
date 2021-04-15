@@ -881,6 +881,11 @@ void ofApp::mouseReleased(int x, int y, int button) {
 	bPaintingInBrushCanvas = false;
 	bPaintingInMainCanvas = false;
 
+	/// ----- Modals
+	setCanvasDimsModal.mouseReleased(x, y);
+	if (setCanvasDimsModal.isVisible()) return;
+
+	/// ----- Brush selection
 	int savedBrushRectX = x + (savedBrushRects[0].getWidth() / 2);
 	int savedBrushRectY = y + (savedBrushRects[0].getHeight() / 2);
 
@@ -891,9 +896,6 @@ void ofApp::mouseReleased(int x, int y, int button) {
 			return;
 		}
 	}
-
-	/// ----- Modals
-	setCanvasDimsModal.mouseReleased(x, y);
 }
 
 //--------------------------------------------------------------
