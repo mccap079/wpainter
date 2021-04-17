@@ -100,10 +100,12 @@ void ofApp::setup() {
 
 	/// ----- Modals
 
-	setCanvasDimsModal.setup({ ofGetWidth() / 2, ofGetHeight() / 2 });
-	ofJson settings = { {"width", setCanvasDimsModalSz.x - setCanvasDimsModal.getBorderSz() * 2} };
+	/// Set canvas dims modal
 
-	setCanvasDimsContainer = setCanvasDimsGui.addContainer("Set canvas dims", settings);
+	setCanvasDimsModal.setup("Coccolino Pippolino <3", { ofGetWidth() / 2, ofGetHeight() / 2 });
+	ofJson setCanvasDimsModalSettings = { {"width", setCanvasDimsModalSz.x - setCanvasDimsModal.getBorderSz() * 2} };
+
+	setCanvasDimsContainer = setCanvasDimsGui.addContainer("Set canvas dims", setCanvasDimsModalSettings);
 	setCanvasDimsContainer->setup();
 	setCanvasDimsContainer->setPosition(setCanvasDimsModal.getPos());
 	setCanvasDimsContainer->add(setCanvasDimsLabel.set("Set canvas size", ""));
@@ -113,6 +115,14 @@ void ofApp::setup() {
 	setCanvasDimsContainer->setBackgroundColor({ 100,100,100,255 });
 
 	ofAddListener(setCanvasDimsModal.okBtnPressed, this, &ofApp::setCanvasDims);
+
+	/// Load painting modal
+
+	loadPaintingModal.setup("Renato Barucco <3 ", { ofGetWidth() / 2, ofGetHeight() / 2 });
+	ofJson loadPaintingModalSettings{ {"width", loadPaintingModalSz.x, -loadPaintingModal.getBorderSz() * 2} };
+
+	ofAddListener(loadPaintingModal.okBtnPressed, this, &ofApp::loadPainting);
+
 	/// ------
 
 	loadPaintingFilename = "null";
@@ -210,7 +220,7 @@ void ofApp::setupGui(int& rowLength) {
 	canvasPanel.add(canvasPanelTitle.setup(canvasPanelTitleStr));
 	canvasPanel.add(savePaintingBtn.setup(savePaintingBtnTxt));
 	canvasPanel.add(loadPaintingLabel.setup(loadPaintingLabelTxt));
-	canvasPanel.add(loadPaintingField.setup("Type filename.png here", ""));
+	//canvasPanel.add(loadPaintingField.setup("Type filename.png here", ""));
 	canvasPanel.add(loadPaintingBtn.setup(loadPaintingBtnTxt));
 	canvasPanel.add(setSizeLabel.setup(setSizeLabelTxt));
 	canvasPanel.add(setSizeBtn.setup(setSizeBtnTxt));
@@ -233,10 +243,10 @@ void ofApp::setupGui(int& rowLength) {
 	loadPaintingLabel.setFillColor(ofColor::black);
 	loadPaintingLabel.setBorderColor(ofColor::black);
 
-	loadPaintingField.setBackgroundColor(bgCol);
+	/*loadPaintingField.setBackgroundColor(bgCol);
 	loadPaintingField.setTextColor(ofColor(0, 140));
 	loadPaintingField.setFillColor(ofColor::black);
-	loadPaintingField.setBorderColor(ofColor::black);
+	loadPaintingField.setBorderColor(ofColor::black);*/
 
 	loadPaintingBtn.setBackgroundColor(bgCol);
 	loadPaintingBtn.setTextColor(ofColor::black);
@@ -286,8 +296,8 @@ void ofApp::setupGui(int& rowLength) {
 	clearCanvasBtn.addListener(this, &ofApp::clearMainCanvas);
 	setCanvasBgBtn.addListener(this, &ofApp::fillMainCanvas);
 	savePaintingBtn.addListener(this, &ofApp::savePainting);
-	loadPaintingField.addListener(this, &ofApp::getTextFieldContent);
-	loadPaintingBtn.addListener(this, &ofApp::loadPainting);
+	//loadPaintingField.addListener(this, &ofApp::getTextFieldContent);
+	loadPaintingBtn.addListener(this, &ofApp::showLoadPaintingModal);
 	setSizeBtn.addListener(this, &ofApp::ShowSetSizeModal);
 }
 
@@ -300,12 +310,15 @@ void ofApp::exit() {
 	clearCanvasBtn.removeListener(this, &ofApp::clearMainCanvas);
 	setCanvasBgBtn.removeListener(this, &ofApp::fillMainCanvas);
 	savePaintingBtn.removeListener(this, &ofApp::savePainting);
-	loadPaintingField.removeListener(this, &ofApp::getTextFieldContent);
-	loadPaintingBtn.removeListener(this, &ofApp::loadPainting);
+	//loadPaintingField.removeListener(this, &ofApp::getTextFieldContent);
+	loadPaintingBtn.removeListener(this, &ofApp::showLoadPaintingModal);
 	setSizeBtn.removeListener(this, &ofApp::ShowSetSizeModal);
 
 	setCanvasDimsModal.exit();
 	ofRemoveListener(setCanvasDimsModal.okBtnPressed, this, &ofApp::setCanvasDims);
+
+	loadPaintingModal.exit();
+	ofRemoveListener(loadPaintingModal.okBtnPressed, this, &ofApp::loadPainting);
 }
 
 //--------------------------------------------------------------
@@ -325,6 +338,7 @@ void ofApp::update() {
 	status.update();
 
 	setCanvasDimsModal.update();
+	loadPaintingModal.update();
 }
 
 //--------------------------------------------------------------
@@ -413,9 +427,7 @@ void ofApp::draw() {
 
 	/// ----- Draw UI
 
-	brushPanel.draw();
-	canvasPanel.draw();
-	brushAnchor.draw();
+	drawGuis();
 
 	/// ----- Modals
 
@@ -425,6 +437,18 @@ void ofApp::draw() {
 	setCanvasDimsContainer->setPosition({
 		setCanvasDimsModal.getPos().x - setCanvasDimsContainer->getWidth() / 2,
 		setCanvasDimsModal.getPos().y - (setCanvasDimsModalSz.y / 2) + setCanvasDimsModal.getBorderSz() });
+
+	loadPaintingModal.draw(loadPaintingModalSz);
+}
+
+//--------------------------------------------------------------
+void ofApp::drawGuis() {
+	if (setCanvasDimsModal.isVisible()) return;
+	else if (loadPaintingModal.isVisible()) return;
+
+	brushPanel.draw();
+	canvasPanel.draw();
+	brushAnchor.draw();
 }
 
 //--------------------------------------------------------------
@@ -491,6 +515,7 @@ void ofApp::updateBrushCanvas() {
 void ofApp::clearBrushCanvas() {
 	/// First check if a modal is active
 	if (setCanvasDimsModal.isVisible()) return;
+	else if (loadPaintingModal.isVisible()) return;
 
 	brushCanvasFbo.begin();
 	ofClear(255, 255, 255, 0);
@@ -503,6 +528,7 @@ void ofApp::clearBrushCanvas() {
 void ofApp::setBrushAnchor_topLeft(bool& b) {
 	/// First check if a modal is active
 	if (setCanvasDimsModal.isVisible()) return;
+	else if (loadPaintingModal.isVisible()) return;
 
 	if (b) {
 		bAnchorCenter = false;
@@ -518,6 +544,7 @@ void ofApp::setBrushAnchor_topLeft(bool& b) {
 void ofApp::setBrushAnchor_center(bool& b) {
 	/// First check if a modal is active
 	if (setCanvasDimsModal.isVisible()) return;
+	else if (loadPaintingModal.isVisible()) return;
 
 	if (b) {
 		bAnchorCenter = true;
@@ -549,6 +576,7 @@ void ofApp::updateMainCanvas() {
 void ofApp::clearMainCanvas() {
 	/// First check if a modal is active
 	if (setCanvasDimsModal.isVisible()) return;
+	else if (loadPaintingModal.isVisible()) return;
 
 	mainCanvasFbo.begin();
 	ofClear(255, 255, 255, 0);
@@ -561,6 +589,7 @@ void ofApp::clearMainCanvas() {
 void ofApp::fillMainCanvas() {
 	/// First check if a modal is active
 	if (setCanvasDimsModal.isVisible()) return;
+	else if (loadPaintingModal.isVisible()) return;
 
 	mainCanvasFbo.begin();
 	ofClear(fillRed, fillGreen, fillBlue, 255);
@@ -622,6 +651,7 @@ void ofApp::setCanvasDims(int& i) {
 void ofApp::savePainting() {
 	/// First check if a modal is active
 	if (setCanvasDimsModal.isVisible()) return;
+	else if (loadPaintingModal.isVisible()) return;
 
 	ofPixels p;
 	mainCanvasFbo.getTexture().readToPixels(p);
@@ -638,18 +668,44 @@ void ofApp::savePainting() {
 }
 
 //--------------------------------------------------------------
+void ofApp::showLoadPaintingModal() {
+	loadPaintingModal.toggleVisible(true);
+	loadPaintingDirectory();
+}
+
+void ofApp::loadPaintingDirectory() {
+	paintingsDir.listDir(ofToDataPath("paintings/"));
+	paintingsDir.allowExt("png");
+	paintingsDir.sort(); // in linux the file system doesn't return file lists ordered in alphabetical order
+
+	//allocate the vector to have as many ofImages as files
+	if (paintingsDir.size()) {
+		thumbnails.assign(paintingsDir.size(), ofImage());
+	}
+
+	// you can now iterate through the files and load them into the ofImage vector
+	for (int i = 0; i < (int)paintingsDir.size(); i++) {
+		/// TODO: Save paintings as basic ints not timestamps
+		thumbnails[i].load(paintingsDir.getPath(i));
+	}
+	loadPaintingListIdx = 0;
+}
+
+//--------------------------------------------------------------
 void ofApp::getTextFieldContent(string& filename) {
 	/// First check if a modal is active
 	if (setCanvasDimsModal.isVisible()) return;
+	else if (loadPaintingModal.isVisible()) return;
 
 	loadPaintingFilename = filename;
 	cout << "Text field input: " << loadPaintingFilename << endl;
 }
 
 //--------------------------------------------------------------
-void ofApp::loadPainting() {
+void ofApp::loadPainting(int& i) {
 	/// First check if a modal is active
 	if (setCanvasDimsModal.isVisible()) return;
+	else if (loadPaintingModal.isVisible()) return;
 
 	string filename = loadPaintingFilename;
 	std::cout << "Loading [" << filename << "]" << endl;
@@ -685,6 +741,7 @@ void ofApp::loadPainting() {
 void ofApp::saveBrushBtnAction() {
 	/// First check if a modal is currently active
 	if (setCanvasDimsModal.isVisible()) return;
+	else if (loadPaintingModal.isVisible()) return;
 
 	updateBrush();
 	status.say("Brush saved!");
@@ -863,6 +920,8 @@ void ofApp::mouseMoved(int x, int y) {
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button) {
 	if (setCanvasDimsModal.isVisible()) return;
+	else if (loadPaintingModal.isVisible()) return;
+
 	bPaintingInBrushCanvas = brushCanvasRect.inside(x, y) ? 1 : 0;
 	bPaintingInMainCanvas = mainCanvasRect.inside(x, y) ? 1 : 0;
 }
@@ -870,8 +929,14 @@ void ofApp::mouseDragged(int x, int y, int button) {
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button) {
 	/// ----- Modals
-	setCanvasDimsModal.mousePressed(x, y);
-	if (setCanvasDimsModal.isVisible()) return;
+	if (setCanvasDimsModal.isVisible()) {
+		setCanvasDimsModal.mousePressed(x, y);
+		return;
+	}
+	else if (loadPaintingModal.isVisible()) {
+		loadPaintingModal.mousePressed(x, y);
+		return;
+	}
 
 	/// ----- Canvas painting
 	bPaintingInBrushCanvas = brushCanvasRect.inside(x, y) ? 1 : 0;
@@ -884,8 +949,14 @@ void ofApp::mouseReleased(int x, int y, int button) {
 	bPaintingInMainCanvas = false;
 
 	/// ----- Modals
-	setCanvasDimsModal.mouseReleased(x, y);
-	if (setCanvasDimsModal.isVisible()) return;
+	if (setCanvasDimsModal.isVisible()) {
+		setCanvasDimsModal.mouseReleased(x, y);
+		return;
+	}
+	else if (loadPaintingModal.isVisible()) {
+		loadPaintingModal.mouseReleased(x, y);
+		return;
+	}
 
 	/// ----- Brush selection
 	int savedBrushRectX = x + (savedBrushRects[0].getWidth() / 2);

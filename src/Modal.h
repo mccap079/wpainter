@@ -7,13 +7,15 @@ public:
 
 	ofEvent<int> okBtnPressed;
 
-	void setup(glm::vec2 pos) {
+	void setup(string name, glm::vec2 pos) {
 		m_pos_visible = pos;
 		m_pos = m_pos_invisible;
 		m_okButton.setup(m_pos, "OK");
 		m_cancelButton.setup(m_pos, "CANCEL");
 		m_isVisible = false;
 		m_animState = ANIM_STATE_NONE;
+
+		cout << "Setting up " << name << " modal" << endl;
 
 		ofAddListener(m_cancelButton.onRelease, this, &Modal::m_cancelButtonPressed);
 		ofAddListener(m_okButton.onRelease, this, &Modal::m_okButtonPressed);
@@ -166,6 +168,7 @@ public:
 			m_shaderTranslateVal = 0.0;
 		}
 		else {
+			cout << "toggleVisible(false)" << endl;
 			m_animStartTime = ofGetElapsedTimef();
 			m_animState = ANIM_STATE_OUT;
 		}
@@ -194,6 +197,7 @@ public:
 	void mouseReleased(int x, int y) {
 		if (!m_isVisible) return;
 
+		cout << "Modal::mouseReleased" << endl;
 		m_okButton.mouseReleased(x, y);
 		m_cancelButton.mouseReleased(x, y);
 	}
@@ -201,6 +205,7 @@ public:
 private:
 
 	void m_cancelButtonPressed(int& i) {
+		cout << "m_cancelButtonPressed" << endl;
 		toggleVisible(false);
 	}
 

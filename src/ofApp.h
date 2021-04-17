@@ -71,7 +71,6 @@ public:
 	void fillMainCanvas();
 	void savePainting();
 	void getTextFieldContent(string& filename);
-	void loadPainting();
 
 	ofFbo mainCanvasFbo;
 
@@ -80,6 +79,7 @@ public:
 	/// ----- Guis
 
 	void setupGui(int& rowLength);
+	void drawGuis();
 
 	/// Brush GUI
 	const string brushPanelTitleStr = "<<< BRUSH SETTINGS";
@@ -122,7 +122,7 @@ public:
 	ofxLabel canvasPanelTitle;
 	ofxButton savePaintingBtn;
 	ofxLabel loadPaintingLabel;
-	ofxTextField loadPaintingField;
+	//ofxTextField loadPaintingField;
 	ofxButton loadPaintingBtn;
 	ofxLabel setSizeLabel;
 	ofxButton setSizeBtn;
@@ -165,4 +165,16 @@ public:
 	ofxGuiContainer* setCanvasDimsContainer;
 	ofParameter<string> setCanvasDimsLabel;
 	ofParameter<string> setWidthInput, setHeightInput;
+
+	///Load painting modal
+	void showLoadPaintingModal();
+	void loadPaintingDirectory();
+	void loadPainting(int& i);
+
+	Modal loadPaintingModal;
+	glm::vec2 loadPaintingModalSz = { 350, 500 };
+
+	ofDirectory paintingsDir;
+	vector<ofImage> thumbnails;
+	int loadPaintingListIdx;
 };
