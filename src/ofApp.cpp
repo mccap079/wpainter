@@ -110,6 +110,8 @@ void ofApp::setup() {
 	setCanvasDimsContainer->add<ofxGuiTextField>(setWidthInput.set("X", "1-" + ofToString(maxCanvasSz.x)));
 	setCanvasDimsContainer->add<ofxGuiTextField>(setHeightInput.set("Y", "1-" + ofToString(maxCanvasSz.y)));
 
+	setCanvasDimsContainer->setBackgroundColor({ 100,100,100,255 });
+
 	ofAddListener(setCanvasDimsModal.okBtnPressed, this, &ofApp::setCanvasDims);
 	/// ------
 

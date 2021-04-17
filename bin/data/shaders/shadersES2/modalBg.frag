@@ -5,13 +5,14 @@
 precision highp float;
 
 uniform float animVal;
+uniform float translateVal;
 
 void main()
 {
     vec2 p = vec2(floor(gl_FragCoord.x), floor(gl_FragCoord.y));
 
-	if(mod(p.y,10.0) == 0.0){
-		if(mod(p.x,10.0) == 0.0) discard;
+	if(mod(p.y,10.0) == ceil(translateVal)){
+		if(mod(p.x,10.0) == ceil(translateVal)) discard;
 	}
 
 	if(mod(p.y,10.0) > ceil(animVal)) discard;

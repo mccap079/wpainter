@@ -55,8 +55,13 @@ public:
 				9);
 
 			if (ofGetElapsedTimef() > m_animStartTime + m_animDuration) {
-				m_animState = ANIM_STATE_NONE;
+				m_animState = ANIM_STATE_HOLD;
 			}
+			break;
+		}
+		case ANIM_STATE_HOLD: {
+			m_currentBorderCol_dark = m_borderCol_dark_flashOff;
+			m_currentBorderCol_shine = m_borderCol_shine_flashOff;
 			break;
 		}
 		case ANIM_STATE_OUT: {
@@ -78,6 +83,11 @@ public:
 			break;
 		}
 		}
+
+		if (m_animState != ANIM_STATE_NONE) {
+			m_shaderTranslateVal += ofGetLastFrameTime() * 30;
+			if (m_shaderTranslateVal >= 9.0) m_shaderTranslateVal = 0.0;
+		}
 	}
 
 	void draw(glm::vec2 sz) {
@@ -94,11 +104,12 @@ public:
 			if (m_isVisible) {
 				m_bgShader.begin(); {
 					m_bgShader.setUniform1f("animVal", m_shaderVal);
+					m_bgShader.setUniform1f("translateVal", m_shaderTranslateVal);
 					ofDrawRectangle(ofGetWidth() / 2,
 						ofGetHeight() / 2,
 						ofGetWidth(),
 						ofGetHeight());
-				}m_bgShader.end();
+				} m_bgShader.end();
 			}
 
 			/// 1px black border
@@ -152,6 +163,7 @@ public:
 			m_isVisible = b;
 			m_animStartTime = ofGetElapsedTimef();
 			m_animState = ANIM_STATE_IN;
+			m_shaderTranslateVal = 0.0;
 		}
 		else {
 			m_animStartTime = ofGetElapsedTimef();
@@ -218,6 +230,7 @@ private:
 	enum AnimState {
 		ANIM_STATE_NONE = 0,
 		ANIM_STATE_IN,
+		ANIM_STATE_HOLD,
 		ANIM_STATE_OUT
 	};
 
@@ -226,6 +239,6 @@ private:
 	const float m_animDuration = 0.5;
 
 	ofShader m_bgShader;
-	float m_shaderVal;
+	float m_shaderVal, m_shaderTranslateVal;
 	const float m_bgAnimTime = m_animDuration / 3;
 };
