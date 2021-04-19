@@ -2,7 +2,7 @@
 #include "ofMain.h"
 #include "Button.h"
 
-class Modal {
+class ModalWindow {
 public:
 
 	ofEvent<int> okBtnPressed;
@@ -15,8 +15,8 @@ public:
 		m_isVisible = false;
 		m_animState = ANIM_STATE_NONE;
 
-		ofAddListener(m_cancelButton.onRelease, this, &Modal::m_cancelButtonPressed);
-		ofAddListener(m_okButton.onRelease, this, &Modal::m_okButtonPressed);
+		ofAddListener(m_cancelButton.onRelease, this, &ModalWindow::m_cancelButtonPressed);
+		ofAddListener(m_okButton.onRelease, this, &ModalWindow::m_okButtonPressed);
 
 #ifdef TARGET_OPENGLES
 		m_bgShader.load("shaders/shadersES2/modalBg");
@@ -24,17 +24,17 @@ public:
 		if (ofIsGLProgrammableRenderer()) {
 			m_bgShader.load("shaders/shadersGL3/modalBg");
 			cout << "GL3" << endl;
-	}
+		}
 		else {
 			m_bgShader.load("shaders/shadersGL2/modalBg");
 			cout << "GL2" << endl;
 		}
 #endif
-}
+	}
 
 	void exit() {
-		ofRemoveListener(m_cancelButton.onRelease, this, &Modal::m_cancelButtonPressed);
-		ofRemoveListener(m_okButton.onRelease, this, &Modal::m_okButtonPressed);
+		ofRemoveListener(m_cancelButton.onRelease, this, &ModalWindow::m_cancelButtonPressed);
+		ofRemoveListener(m_okButton.onRelease, this, &ModalWindow::m_okButtonPressed);
 	}
 
 	void update() {
@@ -90,11 +90,7 @@ public:
 		}
 	}
 
-	void draw(glm::vec2 sz) {
-		draw(sz.x, sz.y);
-	}
-
-	void draw(float w, float h) {
+	void draw() {
 		if (m_isVisible && m_animState != ANIM_STATE_OUT) m_pos = m_pos_visible;
 		else m_pos = m_pos_invisible;
 
@@ -115,42 +111,54 @@ public:
 			/// 1px black border
 			ofSetColor(ofColor::black);
 			ofNoFill();
-			ofDrawRectangle(m_pos, w + 1, h + 1);
+			ofDrawRectangle(m_pos, m_sz.x + 1, m_sz.y + 1);
 
 			ofFill();
 			/// Border shine
 			ofSetColor(m_currentBorderCol_shine);
-			ofDrawRectangle(m_pos, w, h);
+			ofDrawRectangle(m_pos, m_sz.x, m_sz.y);
 
 			/// Border shadow
 			ofSetColor(m_currentBorderCol_dark);
 			ofSetPolyMode(OF_POLY_WINDING_ODD);	// this is the normal mode
-			glm::vec2 topLeft = { m_pos.x - w / 2, m_pos.y - h / 2 };
+			glm::vec2 topLeft = { m_pos.x - m_sz.x / 2, m_pos.y - m_sz.y / 2 };
 			ofBeginShape();
 			ofVertex(topLeft.x, topLeft.y);
 			ofVertex(topLeft.x + m_borderSz, topLeft.y + m_borderSz);
-			ofVertex(topLeft.x + w - m_borderSz, topLeft.y + h - m_borderSz);
-			ofVertex(topLeft.x + w, topLeft.y + h);
-			ofVertex(topLeft.x, topLeft.y + h);
+			ofVertex(topLeft.x + m_sz.x - m_borderSz, topLeft.y + m_sz.y - m_borderSz);
+			ofVertex(topLeft.x + m_sz.x, topLeft.y + m_sz.y);
+			ofVertex(topLeft.x, topLeft.y + m_sz.y);
 			ofEndShape();
 
 			/// bg
 			ofSetColor(m_modalCol);
-			ofDrawRectangle(m_pos, w - (m_borderSz * 2), h - (m_borderSz * 2));
+			ofDrawRectangle(m_pos, m_sz.x - (m_borderSz * 2), m_sz.y - (m_borderSz * 2));
 
 			/// Buttons
 			m_okButton.setPos({
-				m_pos.x + w / 2 - m_borderSz - m_okButton.getWidth() - m_cancelButton.getWidth() - m_padding * 2,
-				m_pos.y + h / 2 - m_okButton.getHeight() - m_padding });
+				m_pos.x + m_sz.x / 2 - m_borderSz - m_okButton.getWidth() - m_cancelButton.getWidth() - m_padding * 2,
+				m_pos.y + m_sz.y / 2 - m_okButton.getHeight() - m_padding });
 
 			m_cancelButton.setPos({ m_okButton.getPos().x + m_okButton.getWidth() + m_padding,
-				m_pos.y + h / 2 - m_cancelButton.getHeight() - m_padding });
+				m_pos.y + m_sz.y / 2 - m_cancelButton.getHeight() - m_padding });
 
 			m_okButton.draw();
 			m_cancelButton.draw();
 
 			ofSetColor(ofColor::red);
 		}ofPopStyle();
+	}
+
+	void setSize(glm::vec2 sz) {
+		m_sz = sz;
+	}
+
+	int getWidth() {
+		return m_sz.x;
+	}
+
+	int getHeight() {
+		return m_sz.y;
 	}
 
 	/// Sets position of modal when visible
@@ -195,7 +203,6 @@ public:
 	void mouseReleased(int x, int y) {
 		if (!m_isVisible) return;
 
-		cout << "Modal::mouseReleased" << endl;
 		m_okButton.mouseReleased(x, y);
 		m_cancelButton.mouseReleased(x, y);
 	}
@@ -203,7 +210,6 @@ public:
 private:
 
 	void m_cancelButtonPressed(int& i) {
-		cout << "m_cancelButtonPressed" << endl;
 		toggleVisible(false);
 	}
 
@@ -213,6 +219,7 @@ private:
 		toggleVisible(false);
 	}
 
+	glm::vec2 m_sz;
 	glm::vec2 m_pos, m_pos_visible;
 	const glm::vec2 m_pos_invisible = { -1000,-1000 };
 	ofColor m_modalCol = ofColor::lightGray;

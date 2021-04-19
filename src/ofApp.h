@@ -7,7 +7,9 @@
 //#include "ScrollBar.h"
 #include "BrushAnchor.h"
 #include "StatusBar.h"
-#include "Modal.h"
+#include "ModalWindow.h"
+#include "SetCanvasDimsModal.h"
+#include "LoadPaintingModal.h"
 
 class ofApp : public ofBaseApp {
 public:
@@ -132,8 +134,6 @@ public:
 	ofxLabel startOverLabel_mainCanvas;
 	ofxButton clearCanvasBtn;
 
-	string loadPaintingFilename;
-
 	/// Saved brushes collection
 
 	void saveBrush(ofPixels& p);
@@ -158,27 +158,13 @@ public:
 	void ShowSetSizeModal();
 	void setCanvasDims(int& i);
 	void resizeCanvas(int w, int h);
-
 	const glm::vec2 maxCanvasSz = { ofGetScreenWidth() * 2, ofGetScreenHeight() * 4 };
-	Modal setCanvasDimsModal;
-	glm::vec2 setCanvasDimsModalSz = { 220, 150 };
-	ofxGui setCanvasDimsGui;
-	ofxGuiContainer* setCanvasDimsContainer;
-	ofParameter<string> setCanvasDimsLabel;
-	ofParameter<string> setWidthInput, setHeightInput;
+	CanvasDimsModal canvasDimsModal;
 
 	///Load painting modal
 	void showLoadPaintingModal();
 	void drawLoadPaintingMenu();
-	void loadPaintingDirectory();
 	void loadPainting(int& i);
 
-	Modal loadPaintingModal;
-	glm::vec2 loadPaintingModalSz = { 500, 500 };
-
-	ofDirectory paintingsDir;
-	vector<ofImage> thumbnails;
-	int loadPaintingListIdx;
-	const int thumbWidth = 200;
-	const int thumbHeight = 250;
+	LoadPaintingModal loadPaintingModal;
 };
