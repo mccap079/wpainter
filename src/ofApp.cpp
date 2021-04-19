@@ -102,7 +102,7 @@ void ofApp::setup() {
 
 	/// Set canvas dims modal
 
-	setCanvasDimsModal.setup("Coccolino Pippolino <3", { ofGetWidth() / 2, ofGetHeight() / 2 });
+	setCanvasDimsModal.setup({ ofGetWidth() / 2, ofGetHeight() / 2 });
 	ofJson setCanvasDimsModalSettings = { {"width", setCanvasDimsModalSz.x - setCanvasDimsModal.getBorderSz() * 2} };
 
 	setCanvasDimsContainer = setCanvasDimsGui.addContainer("Set canvas dims", setCanvasDimsModalSettings);
@@ -118,7 +118,7 @@ void ofApp::setup() {
 
 	/// Load painting modal
 
-	loadPaintingModal.setup("Renato Barucco <3 ", { ofGetWidth() / 2, ofGetHeight() / 2 });
+	loadPaintingModal.setup({ ofGetWidth() / 2, ofGetHeight() / 2 });
 	ofJson loadPaintingModalSettings{ {"width", loadPaintingModalSz.x, -loadPaintingModal.getBorderSz() * 2} };
 
 	ofAddListener(loadPaintingModal.okBtnPressed, this, &ofApp::loadPainting);
@@ -339,6 +339,9 @@ void ofApp::update() {
 
 	setCanvasDimsModal.update();
 	loadPaintingModal.update();
+
+	if (loadPaintingModal.isVisible())
+		if (paintingsDir.size() > 0) loadPaintingFilename = paintingsDir.getName(loadPaintingListIdx);
 }
 
 //--------------------------------------------------------------
@@ -439,6 +442,7 @@ void ofApp::draw() {
 		setCanvasDimsModal.getPos().y - (setCanvasDimsModalSz.y / 2) + setCanvasDimsModal.getBorderSz() });
 
 	loadPaintingModal.draw(loadPaintingModalSz);
+	if (loadPaintingModal.isVisible()) drawLoadPaintingMenu();
 }
 
 //--------------------------------------------------------------
@@ -594,22 +598,6 @@ void ofApp::fillMainCanvas() {
 	mainCanvasFbo.begin();
 	ofClear(fillRed, fillGreen, fillBlue, 255);
 	mainCanvasFbo.end();
-
-	if (ofColor(fillRed, fillGreen, fillBlue) == ofColor::lime) {
-		if (ofRandom(1.0) > 0.8) status.say("Green is neat!");
-	}
-	else if (ofColor(fillRed, fillGreen, fillBlue) == ofColor::red) {
-		if (ofRandom(1.0) > 0.9) status.say("H A I L   S A T A N");
-	}
-	else if (ofColor(fillRed, fillGreen, fillBlue) == ofColor::blue) {
-		if (ofRandom(1.0) > 0.8) status.say("Very blue!");
-	}
-	else if (ofColor(fillRed, fillGreen, fillBlue) == ofColor::black) {
-		if (ofRandom(1.0) > 0.8) status.say("Gaze unto the void");
-	}
-	else if (ofColor(fillRed, fillGreen, fillBlue) == ofColor::white) {
-		if (ofRandom(1.0) > 0.8) status.say("White is nice!");
-	}
 }
 
 //--------------------------------------------------------------
@@ -623,9 +611,11 @@ void ofApp::setCanvasDims(int& i) {
 		return;
 	}
 
-	int w = ofToInt(setWidthInput.get());
-	int h = ofToInt(setHeightInput.get());
+	resizeCanvas(ofToInt(setWidthInput.get()), ofToInt(setHeightInput.get()));
+}
 
+//--------------------------------------------------------------
+void ofApp::resizeCanvas(int w, int h) {
 	if (w < 0) w = 1;
 	else if (w > maxCanvasSz.x) w = maxCanvasSz.x;
 
@@ -685,10 +675,46 @@ void ofApp::loadPaintingDirectory() {
 
 	// you can now iterate through the files and load them into the ofImage vector
 	for (int i = 0; i < (int)paintingsDir.size(); i++) {
-		/// TODO: Save paintings as basic ints not timestamps
 		thumbnails[i].load(paintingsDir.getPath(i));
+		int w = thumbnails[i].getWidth();
+		int h = thumbnails[i].getHeight();
+		if (thumbnails[i].getWidth() >= thumbnails[i].getHeight()) {
+			float scaleRatio = w / thumbWidth;
+			float thumbHeight = h / scaleRatio;
+			thumbnails[i].resize(thumbWidth, thumbHeight);
+		}
+		else {
+			float scaleRatio = h / thumbHeight;
+			float thumbWidth = w / scaleRatio;
+			thumbnails[i].resize(thumbWidth, thumbHeight);
+		}
 	}
 	loadPaintingListIdx = 0;
+}
+
+//--------------------------------------------------------------
+void ofApp::drawLoadPaintingMenu() {
+	glm::vec2 topLeft = { loadPaintingModal.getPos().x - loadPaintingModalSz.x / 2 + loadPaintingModal.getBorderSz(),
+			loadPaintingModal.getPos().y - loadPaintingModalSz.y / 2 + loadPaintingModal.getBorderSz() };
+
+	if (paintingsDir.size() > 0) {
+		ofSetColor(ofColor::white);
+		thumbnails[loadPaintingListIdx].draw(
+			loadPaintingModal.getPos().x + loadPaintingModalSz.x / 2 - loadPaintingModal.getBorderSz() - thumbnails[loadPaintingListIdx].getWidth(),
+			loadPaintingModal.getPos().y - loadPaintingModalSz.y / 2 + loadPaintingModal.getBorderSz());
+	}
+
+	ofSetColor(ofColor::gray);
+	for (int i = 0; i < (int)paintingsDir.size(); i++) {
+		if (i == loadPaintingListIdx) {
+			ofSetColor(ofColor::red);
+		}
+		else {
+			ofSetColor(ofColor::black);
+		}
+		string fileInfo = ofToString(i + 1) + ": " + paintingsDir.getName(i);
+		ofDrawBitmapString(fileInfo, topLeft.x, topLeft.y + i * 20 + 10);
+	}
 }
 
 //--------------------------------------------------------------
@@ -704,8 +730,8 @@ void ofApp::getTextFieldContent(string& filename) {
 //--------------------------------------------------------------
 void ofApp::loadPainting(int& i) {
 	/// First check if a modal is active
-	if (setCanvasDimsModal.isVisible()) return;
-	else if (loadPaintingModal.isVisible()) return;
+	/*if (setCanvasDimsModal.isVisible()) return;
+	else if (loadPaintingModal.isVisible()) return;*/
 
 	string filename = loadPaintingFilename;
 	std::cout << "Loading [" << filename << "]" << endl;
@@ -725,6 +751,10 @@ void ofApp::loadPainting(int& i) {
 			StatusBar::UrgencyLevel::URGENCY_LEVEL_WARNING);
 		return;
 	};
+
+	///Set canvas to painting size
+	resizeCanvas(img.getWidth(), img.getHeight());
+
 	ofPixels p;
 	img.getTexture().readToPixels(p);
 
@@ -897,6 +927,22 @@ void ofApp::makeBrushCanvasBg()
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key) {
+	if (loadPaintingModal.isVisible()) {
+		switch (key) {
+		case OF_KEY_UP:
+			if (paintingsDir.size() > 0) {
+				loadPaintingListIdx--;
+				if (loadPaintingListIdx < 0) loadPaintingListIdx = paintingsDir.size() - 1;
+			}
+			break;
+		case OF_KEY_DOWN:
+			if (paintingsDir.size() > 0) {
+				loadPaintingListIdx++;
+				loadPaintingListIdx %= paintingsDir.size();
+			}
+			break;
+		}
+	}
 }
 
 //--------------------------------------------------------------

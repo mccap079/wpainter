@@ -157,6 +157,7 @@ public:
 	/// Set canvas size modal
 	void ShowSetSizeModal();
 	void setCanvasDims(int& i);
+	void resizeCanvas(int w, int h);
 
 	const glm::vec2 maxCanvasSz = { ofGetScreenWidth() * 2, ofGetScreenHeight() * 4 };
 	Modal setCanvasDimsModal;
@@ -168,13 +169,16 @@ public:
 
 	///Load painting modal
 	void showLoadPaintingModal();
+	void drawLoadPaintingMenu();
 	void loadPaintingDirectory();
 	void loadPainting(int& i);
 
 	Modal loadPaintingModal;
-	glm::vec2 loadPaintingModalSz = { 350, 500 };
+	glm::vec2 loadPaintingModalSz = { 500, 500 };
 
 	ofDirectory paintingsDir;
 	vector<ofImage> thumbnails;
 	int loadPaintingListIdx;
+	const int thumbWidth = 200;
+	const int thumbHeight = 250;
 };

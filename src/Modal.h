@@ -7,15 +7,13 @@ public:
 
 	ofEvent<int> okBtnPressed;
 
-	void setup(string name, glm::vec2 pos) {
+	void setup(glm::vec2 pos) {
 		m_pos_visible = pos;
 		m_pos = m_pos_invisible;
 		m_okButton.setup(m_pos, "OK");
 		m_cancelButton.setup(m_pos, "CANCEL");
 		m_isVisible = false;
 		m_animState = ANIM_STATE_NONE;
-
-		cout << "Setting up " << name << " modal" << endl;
 
 		ofAddListener(m_cancelButton.onRelease, this, &Modal::m_cancelButtonPressed);
 		ofAddListener(m_okButton.onRelease, this, &Modal::m_okButtonPressed);
@@ -26,13 +24,13 @@ public:
 		if (ofIsGLProgrammableRenderer()) {
 			m_bgShader.load("shaders/shadersGL3/modalBg");
 			cout << "GL3" << endl;
-		}
+	}
 		else {
 			m_bgShader.load("shaders/shadersGL2/modalBg");
 			cout << "GL2" << endl;
 		}
 #endif
-	}
+}
 
 	void exit() {
 		ofRemoveListener(m_cancelButton.onRelease, this, &Modal::m_cancelButtonPressed);
