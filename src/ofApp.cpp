@@ -856,12 +856,17 @@ void ofApp::mouseMoved(int x, int y) {
 		}
 		else hoveredBrush = -1;
 	}
+
+	//if (loadPaintingModal.window.isVisible()) loadPaintingModal.scrollBar.mouseMoved(x, y);
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button) {
 	if (canvasDimsModal.window.isVisible()) return;
-	else if (loadPaintingModal.window.isVisible()) return;
+	else if (loadPaintingModal.window.isVisible()) {
+		//loadPaintingModal.scrollBar.mouseDragged(x, y, button);
+		return;
+	}
 
 	bPaintingInBrushCanvas = brushCanvasRect.inside(x, y) ? 1 : 0;
 	bPaintingInMainCanvas = mainCanvasRect.inside(x, y) ? 1 : 0;
@@ -876,6 +881,7 @@ void ofApp::mousePressed(int x, int y, int button) {
 	}
 	else if (loadPaintingModal.window.isVisible()) {
 		loadPaintingModal.window.mousePressed(x, y);
+		//loadPaintingModal.scrollBar.mousePressed(x, y, button);
 		return;
 	}
 
@@ -896,6 +902,7 @@ void ofApp::mouseReleased(int x, int y, int button) {
 	}
 	else if (loadPaintingModal.window.isVisible()) {
 		loadPaintingModal.window.mouseReleased(x, y);
+		//loadPaintingModal.scrollBar.mouseReleased(x, y, button);
 		return;
 	}
 
@@ -922,6 +929,7 @@ void ofApp::mouseExited(int x, int y) {
 
 //--------------------------------------------------------------
 void ofApp::windowResized(int w, int h) {
+	//loadPaintingModal.scrollBar.windowResized(w, h);
 }
 
 //--------------------------------------------------------------

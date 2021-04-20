@@ -42,10 +42,19 @@ public:
 		ofBackground(127);
 		ofSetVerticalSync(true);
 	}
+	void setPanelSize(int w, int h) {
+		panelWidth = w;
+		panelHeight = h;
+	}
+
+	void setContentHeight(int h) {
+		contentHeight = h;
+	}
+
 	void update() {
 		// The size of the panel. All the screen except margins
-		panelWidth = ofGetWidth() - margin * 2;
-		panelHeight = ofGetHeight() - margin * 2;
+		/*panelWidth = ofGetWidth() - margin * 2;
+		panelHeight = ofGetHeight() - margin * 2;*/
 
 		// Space available for displayed images
 		int availableWidth = panelWidth - scrollBarWidth - gap;
@@ -58,23 +67,24 @@ public:
 
 		// Place the rectangles in rows and columns. A row must be smaller than availableWidth
 		// After this loop, we know that the images fits the panel width. But the available panel height can be to small to display them all.
-		for (int i = 0; i < images.size(); ++i) {
-			r = &rectangles[i];
-			r->x = x;
-			r->y = y;
+		//for (int i = 0; i < images.size(); ++i) {
+		//	r = &rectangles[i];
+		//	r->x = x;
+		//	r->y = y;
 
-			// Now compute the next rectangle position
-			x += imagesWidth + gap;
-			if (x + imagesWidth > availableWidth) {
-				scrollBarRectangle.x = r->getRight() + gap; // Adjust the scroll bar position to draw it just at the right
-				x = 0;
-				y += imagesHeight + gap;
-			}
-		}
+		//	// Now compute the next rectangle position
+		//	x += imagesWidth + gap;
+		//	if (x + imagesWidth > availableWidth) {
+		//		scrollBarRectangle.x = r->getRight() + gap; // Adjust the scroll bar position to draw it just at the right
+		//		x = 0;
+		//		y += imagesHeight + gap;
+		//	}
+		//}
 
+		scrollBarRectangle.x = panelWidth - scrollBarWidth;
 		gripRectangle.x = scrollBarRectangle.x; // Also adjust the grip x coordinate
 
-		int contentHeight = r->getBottom(); // Total height for all the rectangles
+		//int contentHeight = r->getBottom(); // Total height for all the rectangles
 		// TODO: take care if images.size() == 0
 
 		if (contentHeight > panelHeight) {
@@ -125,32 +135,36 @@ public:
 		ofPushMatrix();
 		ofTranslate(margin, margin, 0);
 
-		ofRectangle r;
-		ofImage img;
-		ofSetColor(255);
+		ofSetColor(ofColor::red);
+		ofFill();
+		ofDrawRectangle(0, 0, ofGetWidth(), ofGetHeight());
 
-		for (int i = 0; i < images.size(); ++i) {
-			r = rectangles[i];        // the image position in the panel
-			r.y -= contentScrollY;    // adjust this position according to the scrolling
-			img = images[i];          // image to display. OF don't copy big objects like ofImage, so no need to use a pointor.
+		//ofRectangle r;
+		//ofImage img;
+		//ofSetColor(255);
 
-			if (r.y < 0) {
-				if (r.getBottom() > 0) {
-					// Exception 1: If a image is cut at the top of the panel
-					img.getTextureReference().drawSubsection(r.x, 0, r.width, imagesHeight + r.y, 0, -r.y, r.width, imagesHeight + r.y);
-				}
-			}
-			else if (r.getBottom() > panelHeight) {
-				if (r.y < panelHeight) {
-					// Exception 2: If a image is cut at the bottom of the panel.
-					img.getTextureReference().drawSubsection(r.x, r.y, r.width, panelHeight - r.y, 0, 0, r.width, panelHeight - r.y);
-				}
-			}
-			else {
-				// Draw an image in the panel
-				images[i].draw(r.x, r.y);
-			}
-		}
+		//for (int i = 0; i < images.size(); ++i) {
+		//	r = rectangles[i];        // the image position in the panel
+		//	r.y -= contentScrollY;    // adjust this position according to the scrolling
+		//	img = images[i];          // image to display. OF don't copy big objects like ofImage, so no need to use a pointor.
+
+		//	if (r.y < 0) {
+		//		if (r.getBottom() > 0) {
+		//			// Exception 1: If a image is cut at the top of the panel
+		//			img.getTextureReference().drawSubsection(r.x, 0, r.width, imagesHeight + r.y, 0, -r.y, r.width, imagesHeight + r.y);
+		//		}
+		//	}
+		//	else if (r.getBottom() > panelHeight) {
+		//		if (r.y < panelHeight) {
+		//			// Exception 2: If a image is cut at the bottom of the panel.
+		//			img.getTextureReference().drawSubsection(r.x, r.y, r.width, panelHeight - r.y, 0, 0, r.width, panelHeight - r.y);
+		//		}
+		//	}
+		//	else {
+		//		// Draw an image in the panel
+		//		images[i].draw(r.x, r.y);
+		//	}
+		//}
 
 		/* Draw the scroll bar, is needed */
 
@@ -235,4 +249,5 @@ public:
 	bool isMouseOverGrip;
 	int mousePreviousY;
 	vector<ofRectangle> rectangles;
+	int contentHeight;
 };
