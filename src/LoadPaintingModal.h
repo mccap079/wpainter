@@ -54,7 +54,7 @@ public:
 
 			scrollSignalRect_btm.set(
 				topLeft.x,
-				topLeft.y + m_scrollAmt * m_lineHeight + 10,
+				topLeft.y + m_scrollAmt * m_lineHeight + 20,
 				m_windowSz.x / 2 - window.getBorderSz() * 2,
 				m_lineHeight);
 
@@ -129,9 +129,13 @@ public:
 			int w = m_thumbnails[i].getWidth();
 			int h = m_thumbnails[i].getHeight();
 			if (m_thumbnails[i].getWidth() >= m_thumbnails[i].getHeight()) {
-				float scaleRatio = w / m_thumbWidth;
-				float m_thumbHeight = h / scaleRatio;
-				m_thumbnails[i].resize(m_thumbWidth, m_thumbHeight);
+				float scaleRatio = (float)w / (float)m_thumbWidth;
+				float m_thumbHeight = (float)h / (float)scaleRatio;
+
+				ofPixels pix;
+				pix = m_thumbnails[i].getPixels();
+				pix.resize(m_thumbWidth, m_thumbHeight, OF_INTERPOLATE_NEAREST_NEIGHBOR);
+				m_thumbnails[i].setFromPixels(pix);
 			}
 			else {
 				float scaleRatio = h / m_thumbHeight;
