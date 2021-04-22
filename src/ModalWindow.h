@@ -10,8 +10,8 @@ public:
 	void setup(glm::vec2 pos) {
 		m_pos_visible = pos;
 		m_pos = m_pos_invisible;
-		m_okButton.setup(m_pos, "OK");
-		m_cancelButton.setup(m_pos, "CANCEL");
+		m_okButton.setup(m_pos, "OK (ENTER)");
+		m_cancelButton.setup(m_pos, "CANCEL (DEL)");
 		m_isVisible = false;
 		m_animState = ANIM_STATE_NONE;
 
@@ -205,6 +205,18 @@ public:
 
 		m_okButton.mouseReleased(x, y);
 		m_cancelButton.mouseReleased(x, y);
+	}
+
+	void keyPressed(int key) {
+		int i = 0;
+		switch (key) {
+		case OF_KEY_RETURN:
+			m_okButtonPressed(i);
+			break;
+		case OF_KEY_BACKSPACE:
+			m_cancelButtonPressed(i);
+			break;
+		}
 	}
 
 private:

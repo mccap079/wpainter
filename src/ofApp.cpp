@@ -414,7 +414,7 @@ void ofApp::draw() {
 
 	canvasDimsModal.draw();
 
-	loadPaintingModal.draw();
+	loadPaintingModal.draw(selectionHighlight);
 }
 
 //--------------------------------------------------------------
@@ -838,6 +838,7 @@ void ofApp::makeBrushCanvasBg()
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key) {
 	loadPaintingModal.keyPressed(key);
+	canvasDimsModal.keyPressed(key);
 }
 
 //--------------------------------------------------------------
@@ -881,7 +882,7 @@ void ofApp::mousePressed(int x, int y, int button) {
 	}
 	else if (loadPaintingModal.window.isVisible()) {
 		loadPaintingModal.window.mousePressed(x, y);
-		//loadPaintingModal.scrollBar.mousePressed(x, y, button);
+		loadPaintingModal.mousePressed(x, y);
 		return;
 	}
 
@@ -902,7 +903,7 @@ void ofApp::mouseReleased(int x, int y, int button) {
 	}
 	else if (loadPaintingModal.window.isVisible()) {
 		loadPaintingModal.window.mouseReleased(x, y);
-		//loadPaintingModal.scrollBar.mouseReleased(x, y, button);
+		loadPaintingModal.mouseReleased(x, y);
 		return;
 	}
 

@@ -35,61 +35,62 @@ public:
 	};
 
 	//--------------------------------------------------------------
-	void draw() {
+	void draw(ofColor& selectionHighlight) {
 		window.draw();
-		if (window.isVisible()) drawLoadPaintingMenu();
+		if (window.isVisible()) drawLoadPaintingMenu(selectionHighlight);
 	};
 
 	//--------------------------------------------------------------
-	void drawLoadPaintingMenu() {
+	void drawLoadPaintingMenu(ofColor& selectionHighlight) {
 		glm::vec2 topLeft = { window.getPos().x - window.getWidth() / 2 + window.getBorderSz(),
 				window.getPos().y - window.getHeight() / 2 + window.getBorderSz() };
 
-		if (m_paintingsDir.size() > m_scrollAmt) {
-			scrollSignalRect_top.set(
-				topLeft.x,
-				topLeft.y,
-				m_windowSz.x / 2 - window.getBorderSz() * 2,
-				m_lineHeight);
+		scrollSignalRect_top.set(
+			topLeft.x,
+			topLeft.y,
+			m_windowSz.x / 2 - window.getBorderSz() * 2,
+			m_lineHeight);
 
-			scrollSignalRect_btm.set(
-				topLeft.x,
-				topLeft.y + m_scrollAmt * m_lineHeight + 20,
-				m_windowSz.x / 2 - window.getBorderSz() * 2,
-				m_lineHeight);
+		scrollSignalRect_btm.set(
+			topLeft.x,
+			topLeft.y + m_scrollAmt * m_lineHeight + 20,
+			m_windowSz.x / 2 - window.getBorderSz() * 2,
+			m_lineHeight);
 
-			ofSetColor(ofColor::white);
-			ofFill();
-			ofDrawRectangle(
-				scrollSignalRect_top.getLeft(),
-				scrollSignalRect_top.getBottom(),
-				scrollSignalRect_top.getWidth(),
-				m_lineHeight * m_scrollAmt);
+		ofSetColor(ofColor::white);
+		ofFill();
+		ofDrawRectangle(
+			scrollSignalRect_top.getLeft(),
+			scrollSignalRect_top.getBottom(),
+			scrollSignalRect_top.getWidth(),
+			m_lineHeight * m_scrollAmt);
 
-			if (m_scrollView_first > 0) {
-				ofSetColor(ofColor::black);
-				ofFill();
-				ofDrawRectangle(scrollSignalRect_top);
-				ofSetColor(ofColor::white);
-				string s = "^^^ UP ARROW";
-				ofDrawBitmapString(
-					s,
-					scrollSignalRect_top.getCenter().x - (s.length() * 8) / 2,
-					scrollSignalRect_top.getCenter().y + 5);
-			}
+		ofSetColor(scrollBtnColor_top);
+		ofFill();
+		ofDrawRectangle(scrollSignalRect_top);
+		ofSetColor(ofColor::white);
+		string s = "^^^ UP ARROW";
+		ofDrawBitmapString(
+			s,
+			scrollSignalRect_top.getCenter().x - (s.length() * 8) / 2,
+			scrollSignalRect_top.getCenter().y + 5);
 
-			if (m_scrollView_last < m_paintingsDir.size()) {
-				ofSetColor(ofColor::black);
-				ofFill();
-				ofDrawRectangle(scrollSignalRect_btm);
-				ofSetColor(ofColor::white);
-				string s = "vvv DOWN ARROW";
-				ofDrawBitmapString(
-					s,
-					scrollSignalRect_btm.getCenter().x - (s.length() * 8) / 2,
-					scrollSignalRect_btm.getCenter().y + 5);
-			}
-		}
+		ofSetColor(scrollBtnColor_btm);
+		ofFill();
+		ofDrawRectangle(scrollSignalRect_btm);
+		ofSetColor(ofColor::white);
+		s = "vvv DOWN ARROW";
+		ofDrawBitmapString(
+			s,
+			scrollSignalRect_btm.getCenter().x - (s.length() * 8) / 2,
+			scrollSignalRect_btm.getCenter().y + 5);
+
+		ofFill();
+		ofSetColor(ofColor::red);
+		ofDrawRectangle(topLeft.x,
+			topLeft.y + (m_lineHeight - 10) / 2 + (m_loadPaintingListIdx - m_scrollView_first) * m_lineHeight + 10,
+			scrollSignalRect_top.getWidth(),
+			scrollSignalRect_top.getHeight());
 
 		if (m_paintingsDir.size() > 0) {
 			ofSetColor(ofColor::white);
@@ -102,7 +103,7 @@ public:
 		for (int i = m_scrollView_first; i < m_scrollView_last; i++) {
 			if (i < m_scrollView_first + m_scrollAmt) {
 				if (i == m_loadPaintingListIdx) {
-					ofSetColor(ofColor::red);
+					ofSetColor(ofColor::white);
 				}
 				else {
 					ofSetColor(ofColor::black);
@@ -176,39 +177,87 @@ public:
 	};
 
 	//--------------------------------------------------------------
+	void mousePressed(int x, int y) {
+		if (scrollSignalRect_top.inside(x, y)) {
+			scrollBtnColor_top = scrollBtnColor_pressed;
+		}
+
+		if (scrollSignalRect_btm.inside(x, y)) {
+			scrollBtnColor_btm = scrollBtnColor_pressed;
+		}
+	}
+
+	//--------------------------------------------------------------
+	void mouseReleased(int x, int y) {
+		if (scrollSignalRect_top.inside(x, y)) {
+			scrollBtnColor_top = scrollBtnColor_inactive;
+			moveSelectionUp();
+		}
+
+		if (scrollSignalRect_btm.inside(x, y)) {
+			scrollBtnColor_btm = scrollBtnColor_inactive;
+			moveSelectionDown();
+		}
+	}
+
+	//--------------------------------------------------------------
 	void keyPressed(int key) {
-		if (window.isVisible()) {
-			switch (key) {
-			case OF_KEY_UP:
-				if (m_paintingsDir.size() <= 0) break;
+		if (!window.isVisible()) return;
 
-				m_loadPaintingListIdx--;
-				if (m_loadPaintingListIdx < 0) {
-					m_loadPaintingListIdx = m_paintingsDir.size() - 1;
-					m_scrollView_first = (m_paintingsDir.size() - 1) - m_scrollAmt;
-					m_scrollView_last = m_paintingsDir.size() - 1;
-				}
-				break;
-			case OF_KEY_DOWN:
-				if (m_paintingsDir.size() <= 0) break;
+		switch (key) {
+		case OF_KEY_UP:
+			moveSelectionUp();
 
-				m_loadPaintingListIdx++;
-				if (m_loadPaintingListIdx >= m_paintingsDir.size()) {
-					m_loadPaintingListIdx = 0;
-					m_scrollView_first = 0;
-					m_scrollView_last = m_scrollAmt;
-				}
-				break;
-			}
+			break;
+		case OF_KEY_DOWN:
+			moveSelectionDown();
+			break;
+		}
 
-			if (m_loadPaintingListIdx >= m_scrollView_last) {
-				m_scrollView_first++;
-				m_scrollView_last++;
-			}
-			else if (m_loadPaintingListIdx < m_scrollView_first) {
-				m_scrollView_first--;
-				m_scrollView_last--;
-			}
+		window.keyPressed(key);
+	}
+
+	//--------------------------------------------------------------
+	void moveSelectionUp() {
+		if (m_paintingsDir.size() <= 0) return;
+
+		m_loadPaintingListIdx--;
+		if (m_loadPaintingListIdx < 0) {
+			m_loadPaintingListIdx = m_paintingsDir.size() - 1;
+			if (m_scrollAmt > m_paintingsDir.size()) m_scrollView_first = 0; /// If directory is smaller than scrollable window, m_scrollviewFirst = 0
+			else m_scrollView_last = (m_paintingsDir.size() - 1) - m_scrollAmt; /// If directory is larger than scrollable window, m_scrollVIewFirst = directory size - scrollViewSz
+			m_scrollView_last = m_paintingsDir.size();
+		}
+
+		if (m_loadPaintingListIdx >= m_scrollView_last) {
+			m_scrollView_first++;
+			m_scrollView_last++;
+		}
+		else if (m_loadPaintingListIdx < m_scrollView_first) {
+			m_scrollView_first--;
+			m_scrollView_last--;
+		}
+	}
+
+	//--------------------------------------------------------------
+	void moveSelectionDown() {
+		if (m_paintingsDir.size() <= 0) return;
+
+		m_loadPaintingListIdx++;
+		if (m_loadPaintingListIdx >= m_paintingsDir.size()) {
+			m_loadPaintingListIdx = 0;
+			m_scrollView_first = 0;
+			if (m_scrollAmt > m_paintingsDir.size()) m_scrollView_last = m_paintingsDir.size(); /// If directory is smaller than scrollable window, m_scrollViewLast = directory sz
+			else m_scrollView_last = m_scrollAmt; /// If directory is larger than scrollable window, m_scrollViewLast = m_scrollAmt
+		}
+
+		if (m_loadPaintingListIdx >= m_scrollView_last) {
+			m_scrollView_first++;
+			m_scrollView_last++;
+		}
+		else if (m_loadPaintingListIdx < m_scrollView_first) {
+			m_scrollView_first--;
+			m_scrollView_last--;
 		}
 	}
 
@@ -229,4 +278,9 @@ private:
 	const int m_scrollAmt = 21;
 	int m_scrollView_first, m_scrollView_last;
 	ofRectangle scrollSignalRect_top, scrollSignalRect_btm;
+
+	ofColor scrollBtnColor_top = ofColor::black;
+	ofColor scrollBtnColor_btm = ofColor::black;
+	ofColor scrollBtnColor_inactive = ofColor::black;
+	ofColor scrollBtnColor_pressed = ofColor::white;
 };

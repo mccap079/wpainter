@@ -4,6 +4,8 @@
 
 class CanvasDimsModal {
 public:
+
+	//--------------------------------------------------------------
 	void setup(glm::vec2 maxCanvasSz) {
 		window.setup({ ofGetWidth() / 2, ofGetHeight() / 2 });
 		window.setSize(m_windowSz);
@@ -21,12 +23,18 @@ public:
 
 		ofAddListener(window.okBtnPressed, this, &CanvasDimsModal::callSetCanvasDims);
 	};
+
+	//--------------------------------------------------------------
 	void exit() {
 		ofRemoveListener(window.okBtnPressed, this, &CanvasDimsModal::callSetCanvasDims);
 	};
+
+	//--------------------------------------------------------------
 	void update() {
 		window.update();
 	};
+
+	//--------------------------------------------------------------
 	void draw() {
 		window.draw();
 
@@ -35,10 +43,18 @@ public:
 			window.getPos().x - m_canvasDimsContainer->getWidth() / 2,
 			window.getPos().y - (m_windowSz.y / 2) + window.getBorderSz() });
 	};
+
+	//--------------------------------------------------------------
 	void callSetCanvasDims(int& i) {
 		ofNotifyEvent(setCanvasDims, i);
 	};
 
+	//--------------------------------------------------------------
+	void keyPressed(int key) {
+		if (window.isVisible()) window.keyPressed(key);
+	}
+
+	//--------------------------------------------------------------
 	string getWidthInput() { return m_setWidthInput.get(); };
 	string getHeightInput() { return m_setHeightInput.get(); };
 
