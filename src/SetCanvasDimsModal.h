@@ -61,7 +61,7 @@ public:
 	ofEvent<int> setCanvasDims;
 	ModalWindow window;
 private:
-	glm::vec2 m_windowSz = { 220, 150 };
+	glm::vec2 m_windowSz = { 250, 150 };
 	ofxGui m_canvasDimsGui;
 	ofxGuiContainer* m_canvasDimsContainer;
 	ofParameter<string> m_canvasDimsLabel;
