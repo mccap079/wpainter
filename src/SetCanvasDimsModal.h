@@ -6,7 +6,7 @@ class CanvasDimsModal {
 public:
 
 	//--------------------------------------------------------------
-	void setup(glm::vec2 maxCanvasSz) {
+	void setup(int maxTexSz) {
 		window.setup({ ofGetWidth() / 2, ofGetHeight() / 2 });
 		window.setSize(m_windowSz);
 
@@ -16,8 +16,8 @@ public:
 		m_canvasDimsContainer->setup();
 		m_canvasDimsContainer->setPosition(window.getPos());
 		m_canvasDimsContainer->add(m_canvasDimsLabel.set("Set canvas size", ""));
-		m_canvasDimsContainer->add<ofxGuiTextField>(m_setWidthInput.set("X", "1-" + ofToString(maxCanvasSz.x)));
-		m_canvasDimsContainer->add<ofxGuiTextField>(m_setHeightInput.set("Y", "1-" + ofToString(maxCanvasSz.y)));
+		m_canvasDimsContainer->add<ofxGuiTextField>(m_setWidthInput.set("X", "1-" + ofToString(maxTexSz)));
+		m_canvasDimsContainer->add<ofxGuiTextField>(m_setHeightInput.set("Y", "1-" + ofToString(maxTexSz)));
 
 		m_canvasDimsContainer->setBackgroundColor({ 100,100,100,255 });
 

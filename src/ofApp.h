@@ -48,8 +48,15 @@ public:
 	ofRectangle mainCanvasRect, brushCanvasRect;
 	glm::vec2 mainCanvasPos, brushCanvasPos;
 
+	/// Canvas scrolling
+	glm::vec2 canvasContainerMaxSz;
+	ofRectangle canvasContainer;
+
+	int maxTexSz = 0;
+
 	/// Brush drawing stuff
 
+	void setBrushCanvasRect();
 	void updateBrushCanvas();
 	void saveBrushBtnAction();
 	void updateBrush();
@@ -80,7 +87,8 @@ public:
 
 	/// ----- Guis
 
-	void setupGui(int& rowLength);
+	void setupGui();
+	void setGuiPos();
 	void drawGuis();
 
 	/// Brush GUI
@@ -106,7 +114,7 @@ public:
 	ofxToggle setAnchorBtn_center;
 	ofxLabel startOverLabel_brushCanvas;
 	ofxButton clearBrushBtn;
-	glm::vec2 colorPanelPos;
+	glm::vec2 brushPanelPos;
 	bool bAnchorCenter = false;
 
 	/// Main canvas GUI
@@ -124,7 +132,6 @@ public:
 	ofxLabel canvasPanelTitle;
 	ofxButton savePaintingBtn;
 	ofxLabel loadPaintingLabel;
-	//ofxTextField loadPaintingField;
 	ofxButton loadPaintingBtn;
 	ofxLabel setSizeLabel;
 	ofxButton setSizeBtn;
@@ -140,14 +147,16 @@ public:
 	void loadBrush(int& brushId);
 	void saveBrushToFile(ofPixels& p);
 	void loadBrushesFromFile();
+	void setBrushMenuPos();
 
+	ofRectangle brushMenuRect;
 	const int numSavedBrushes = 30;
-	glm::vec2 savedBrushesPos;
-	const int savedBrushesPadding = windowMargin;
+	glm::vec2 brushMenuPos;
+	const int brushMenuPadding = windowMargin;
 	int selectedBrush = 0;
 	int hoveredBrush = -1;
-	vector<ofFbo> savedBrushFbos;
-	vector<ofRectangle> savedBrushRects;
+	vector<ofFbo> brushMenuFbos;
+	vector<ofRectangle> brushMenuRects;
 	ofColor selectionHighlight;
 
 	/// Status bars
@@ -158,12 +167,10 @@ public:
 	void ShowSetSizeModal();
 	void setCanvasDims(int& i);
 	void resizeCanvas(int w, int h);
-	const glm::vec2 maxCanvasSz = { ofGetScreenWidth() * 2, ofGetScreenHeight() * 4 };
 	CanvasDimsModal canvasDimsModal;
 
 	///Load painting modal
 	void showLoadPaintingModal();
-	void drawLoadPaintingMenu();
 	void loadPainting(int& i);
 
 	LoadPaintingModal loadPaintingModal;

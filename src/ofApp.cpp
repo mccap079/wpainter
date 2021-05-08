@@ -6,6 +6,14 @@ void ofApp::setup() {
 	ofLogToConsole();
 	ofSetFrameRate(60);
 
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexSz);
+	maxTexSz -= 8;
+	cout << maxTexSz << endl;
+
+	/// ----- Placement of all window elements
+
+	/// Main canvas
+
 	mainCanvasPos = { windowMargin + (mainCanvasSize.x / 2),
 						status.getHeight() + (windowMargin * 2) + (mainCanvasSize.y / 2) };
 
@@ -14,13 +22,15 @@ void ofApp::setup() {
 		mainCanvasSize.x,
 		mainCanvasSize.y);
 
-	brushCanvasPos = { windowMargin + (brushCanvasDisplaySize.y / 2),
-						 mainCanvasRect.getBottom() + windowMargin + (brushCanvasDisplaySize.y / 2) };
+	/// Brush canvas
 
-	brushCanvasRect.set(brushCanvasPos.x - (brushCanvasDisplaySize.x / 2),
-		brushCanvasPos.y - (brushCanvasDisplaySize.y / 2),
-		brushCanvasDisplaySize.x,
-		brushCanvasDisplaySize.y);
+	setBrushCanvasRect();
+
+	/// Main canvas scrollable container
+	canvasContainerMaxSz = { ofGetWidth() - windowMargin * 2, ofGetHeight() - windowMargin * 2 - brushCanvasRect.getHeight() - status.getHeight() };
+	canvasContainer.set(mainCanvasPos.x, mainCanvasPos.y, canvasContainerMaxSz.x, mainCanvasRect.getHeight());
+
+	/// Canvas transparent grid bgs
 
 	mainCanvasBgFbo.allocate(mainCanvasSize.x, mainCanvasSize.y, GL_RGB);
 	mainCanvasBgFbo.begin();
@@ -36,6 +46,8 @@ void ofApp::setup() {
 	makeBrushCanvasBg();
 
 	prevBrushCanvasGridPoint = { -100,-100 };
+
+	/// Canvas FBOs
 
 	brushCanvasFbo.allocate(brushCanvasDisplaySize.x, brushCanvasDisplaySize.y, GL_RGBA);
 	brushCanvasFbo.begin();
@@ -59,35 +71,25 @@ void ofApp::setup() {
 
 	/// ----- Saved brushes
 
-	savedBrushesPos =
+	brushMenuPos =
 	{ (brushCanvasRect.getRight() + windowMargin) + (brushCanvasComputeSize.x / 2),
 		brushCanvasRect.getTop() + (brushCanvasComputeSize.y / 2) };
-	savedBrushRects.resize(numSavedBrushes);
-	int rowLength = 5;
-	int y = 0, x = 0;
-	for (int i = 0; i < savedBrushRects.size(); i++) {
-		savedBrushRects[i].setSize(
+	brushMenuRects.resize(numSavedBrushes);
+
+	for (int i = 0; i < brushMenuRects.size(); i++) {
+		brushMenuRects[i].setSize(
 			brushCanvasComputeSize.x,
 			brushCanvasComputeSize.y);
-
-		if (i > 0) {
-			if (i % rowLength == 0) {
-				x -= rowLength - 1;
-				y++;
-			}
-			else x++;
-		}
-		savedBrushRects[i].setPosition(
-			savedBrushesPos.x + ((savedBrushRects[i].getWidth() + windowMargin) * x),
-			savedBrushesPos.y + ((savedBrushRects[i].getHeight() + windowMargin) * y));
 	}
 
-	savedBrushFbos.resize(numSavedBrushes);
-	for (int i = 0; i < savedBrushFbos.size(); i++) {
-		savedBrushFbos[i].allocate(brushCanvasComputeSize.x, brushCanvasComputeSize.y, GL_RGBA);
-		savedBrushFbos[i].begin();
+	setBrushMenuPos();
+
+	brushMenuFbos.resize(numSavedBrushes);
+	for (int i = 0; i < brushMenuFbos.size(); i++) {
+		brushMenuFbos[i].allocate(brushCanvasComputeSize.x, brushCanvasComputeSize.y, GL_RGBA);
+		brushMenuFbos[i].begin();
 		ofClear(255, 255, 255, 0);
-		savedBrushFbos[i].end();
+		brushMenuFbos[i].end();
 	}
 
 	loadBrushesFromFile();
@@ -96,13 +98,14 @@ void ofApp::setup() {
 
 	/// ------ GUI
 
-	setupGui(rowLength);
+	int brushMenuRowLen = 5;
+	setupGui();
 
 	/// ----- Modals
 
 	/// Set canvas dims modal
 
-	canvasDimsModal.setup(maxCanvasSz);
+	canvasDimsModal.setup(maxTexSz);
 	ofAddListener(canvasDimsModal.setCanvasDims, this, &ofApp::setCanvasDims);
 
 	/// Load painting modal
@@ -114,14 +117,14 @@ void ofApp::setup() {
 } /// end setup
 
 //--------------------------------------------------------------
-void ofApp::setupGui(int& rowLength) {
+void ofApp::setupGui() {
 	/// Brush panel
 
-	colorPanelPos = { savedBrushesPos.x + ((savedBrushRects[0].getWidth() + windowMargin) * rowLength - windowMargin),
+	brushPanelPos = { brushMenuPos.x + brushMenuRect.getWidth() - windowMargin,
 		brushCanvasRect.getTop() };
 
 	brushPanel.setup();
-	brushPanel.setPosition(colorPanelPos);
+	brushPanel.setPosition(brushPanelPos);
 
 	brushPanel.add(brushPanelTitle.setup(brushPanelTitleStr));
 	brushPanel.add(saveBrushBtn.setup(saveBrushButtonTxt));
@@ -203,7 +206,6 @@ void ofApp::setupGui(int& rowLength) {
 	canvasPanel.add(canvasPanelTitle.setup(canvasPanelTitleStr));
 	canvasPanel.add(savePaintingBtn.setup(savePaintingBtnTxt));
 	canvasPanel.add(loadPaintingLabel.setup(loadPaintingLabelTxt));
-	//canvasPanel.add(loadPaintingField.setup("Type filename.png here", ""));
 	canvasPanel.add(loadPaintingBtn.setup(loadPaintingBtnTxt));
 	canvasPanel.add(setSizeLabel.setup(setSizeLabelTxt));
 	canvasPanel.add(setSizeBtn.setup(setSizeBtnTxt));
@@ -225,11 +227,6 @@ void ofApp::setupGui(int& rowLength) {
 	loadPaintingLabel.setTextColor(ofColor::white);
 	loadPaintingLabel.setFillColor(ofColor::black);
 	loadPaintingLabel.setBorderColor(ofColor::black);
-
-	/*loadPaintingField.setBackgroundColor(bgCol);
-	loadPaintingField.setTextColor(ofColor(0, 140));
-	loadPaintingField.setFillColor(ofColor::black);
-	loadPaintingField.setBorderColor(ofColor::black);*/
 
 	loadPaintingBtn.setBackgroundColor(bgCol);
 	loadPaintingBtn.setTextColor(ofColor::black);
@@ -281,6 +278,17 @@ void ofApp::setupGui(int& rowLength) {
 	savePaintingBtn.addListener(this, &ofApp::savePainting);
 	loadPaintingBtn.addListener(this, &ofApp::showLoadPaintingModal);
 	setSizeBtn.addListener(this, &ofApp::ShowSetSizeModal);
+}
+
+//--------------------------------------------------------------
+void ofApp::setGuiPos() {
+	brushPanelPos = { brushMenuPos.x + brushMenuRect.getWidth() - windowMargin,
+		brushCanvasRect.getTop() };
+	brushPanel.setPosition(brushPanelPos);
+
+	canvasPanelPos = { brushPanel.getPosition().x + brushPanel.getWidth() + windowMargin,
+		brushCanvasRect.getTop() };
+	canvasPanel.setPosition(canvasPanelPos);
 }
 
 //--------------------------------------------------------------
@@ -368,33 +376,35 @@ void ofApp::draw() {
 
 	/// ----- Saved brushes
 
-	for (int i = 0; i < savedBrushRects.size(); i++) {
+	ofNoFill();
+	for (int i = 0; i < brushMenuRects.size(); i++) {
 		/// Border
 		if (i == selectedBrush) {
 			ofSetColor(selectionHighlight);
-			ofDrawRectangle(savedBrushRects[i].getPosition().x,
-				savedBrushRects[i].getPosition().y,
-				savedBrushRects[i].getWidth() + 6,
-				savedBrushRects[i].getHeight() + 6);
+			ofDrawRectangle(brushMenuRects[i].getPosition().x,
+				brushMenuRects[i].getPosition().y,
+				brushMenuRects[i].getWidth() + 6,
+				brushMenuRects[i].getHeight() + 6);
 		}
 		else {
 			int borderSz = 2;
 			if (hoveredBrush == i) borderSz = 6;
 			ofSetColor(canvasBorderCol);
-			ofDrawRectangle(savedBrushRects[i].getPosition().x,
-				savedBrushRects[i].getPosition().y,
-				savedBrushRects[i].getWidth() + borderSz,
-				savedBrushRects[i].getHeight() + borderSz);
+			ofDrawRectangle(brushMenuRects[i].getPosition().x,
+				brushMenuRects[i].getPosition().y,
+				brushMenuRects[i].getWidth() + borderSz,
+				brushMenuRects[i].getHeight() + borderSz);
 		}
 		ofSetColor(ofColor::white);
-		ofDrawRectangle(savedBrushRects[i]);
-		savedBrushFbos[i].draw(savedBrushRects[i]);
+		ofDrawRectangle(brushMenuRects[i]);
+		brushMenuFbos[i].draw(brushMenuRects[i]);
 
 		/// Selected brush highlight
 	}
 
 	/// ----- Brush paint
 
+	ofFill();
 	if (bPaintingInBrushCanvas) updateBrushCanvas();
 	ofSetColor(ofColor::white);
 	brushCanvasFbo.draw(brushCanvasRect.getLeft() + (brushCanvasDisplaySize.x / 2),
@@ -415,6 +425,44 @@ void ofApp::draw() {
 	canvasDimsModal.draw();
 
 	loadPaintingModal.draw(selectionHighlight);
+
+	ofSetColor(ofColor::red);
+	ofSetRectMode(OF_RECTMODE_CENTER);
+	ofNoFill();
+	ofDrawRectangle(ofGetMouseX(),
+		ofGetMouseY(),
+		canvasContainer.getWidth(),
+		canvasContainer.getHeight());
+	ofFill();
+}
+
+//--------------------------------------------------------------
+void ofApp::setBrushMenuPos() {
+	brushMenuPos =
+	{ (brushCanvasRect.getRight() + windowMargin) + (brushCanvasComputeSize.x / 2),
+		brushCanvasRect.getTop() + (brushCanvasComputeSize.y / 2) };
+
+	cout << "brushMenuPos = " << brushMenuPos << endl;
+
+	int rowLength = 5;
+	int x = 0, y = 0;
+	for (int i = 0; i < brushMenuRects.size(); i++) {
+		if (i > 0) {
+			if (i % rowLength == 0) {
+				x -= rowLength - 1;
+				y++;
+			}
+			else x++;
+		}
+		brushMenuRects[i].setPosition(
+			brushMenuPos.x + ((brushMenuRects[i].getWidth() + brushMenuPadding) * x),
+			brushMenuPos.y + ((brushMenuRects[i].getHeight() + brushMenuPadding) * y));
+	}
+
+	brushMenuRect.set(brushMenuPos.x,
+		brushMenuPos.y,
+		(brushMenuRects[0].getWidth() + brushMenuPadding) * rowLength,
+		((brushMenuRects[0].getHeight() + brushMenuPadding) * (brushMenuRects.size() / rowLength))); /// number of rows should be brushMenuRects.size() / rowLength
 }
 
 //--------------------------------------------------------------
@@ -590,11 +638,11 @@ void ofApp::setCanvasDims(int& i) {
 
 //--------------------------------------------------------------
 void ofApp::resizeCanvas(int w, int h) {
-	if (w < 0) w = 1;
-	else if (w > maxCanvasSz.x) w = maxCanvasSz.x;
+	if (w < 1) w = 1;
+	else if (w > maxTexSz) w = maxTexSz;
 
 	if (h < 1) h = 1;
-	else if (h > maxCanvasSz.y) h = maxCanvasSz.y;
+	else if (h > maxTexSz) h = maxTexSz;
 
 	mainCanvasSize = { w, h };
 	mainCanvasFbo.allocate(mainCanvasSize.x, mainCanvasSize.y, GL_RGBA);
@@ -609,6 +657,30 @@ void ofApp::resizeCanvas(int w, int h) {
 		mainCanvasPos.y - (mainCanvasSize.y / 2),
 		mainCanvasSize.x,
 		mainCanvasSize.y);
+
+	/// Recheck if canvas.height is > canvasContainerSz
+
+	if (mainCanvasRect.getHeight() <= canvasContainerMaxSz.y) {
+		canvasContainer.height = mainCanvasRect.getHeight();
+	}
+	else if (mainCanvasRect.getHeight() > canvasContainerMaxSz.y) {
+		canvasContainer.height = canvasContainerMaxSz.y;
+	}
+
+	setBrushCanvasRect();
+	setBrushMenuPos();
+	setGuiPos();
+}
+
+//--------------------------------------------------------------
+void ofApp::setBrushCanvasRect() {
+	brushCanvasPos = { windowMargin + (brushCanvasDisplaySize.y / 2),
+						 mainCanvasRect.getBottom() + windowMargin + (brushCanvasDisplaySize.y / 2) };
+
+	brushCanvasRect.set(brushCanvasPos.x - (brushCanvasDisplaySize.x / 2),
+		brushCanvasPos.y - (brushCanvasDisplaySize.y / 2),
+		brushCanvasDisplaySize.x,
+		brushCanvasDisplaySize.y);
 }
 
 //--------------------------------------------------------------
@@ -709,7 +781,7 @@ void ofApp::updateBrush() {
 
 //--------------------------------------------------------------
 void ofApp::saveBrush(ofPixels& p) {
-	savedBrushFbos[selectedBrush].getTextureReference().loadData(p);
+	brushMenuFbos[selectedBrush].getTextureReference().loadData(p);
 	saveBrushToFile(p);
 }
 
@@ -722,11 +794,11 @@ void ofApp::saveBrushToFile(ofPixels& p) {
 
 //--------------------------------------------------------------
 void ofApp::loadBrush(int& brushId) {
-	/// Read every pixel of savedBrushFbos[brushId] into pix
+	/// Read every pixel of brushMenuFbos[brushId] into pix
 	std::cout << "Loading brush " << brushId << endl;
 	ofPixels pix, biggifiedPix;
 	brushCanvasFbo.getTexture().setTextureMinMagFilter(GL_NEAREST, GL_NEAREST);
-	savedBrushFbos[brushId].getTexture().readToPixels(pix);
+	brushMenuFbos[brushId].getTexture().readToPixels(pix);
 
 	/// Biggify pixels from pix to biggifiedPix
 	biggifiedPix.allocate(brushCanvasFbo.getWidth(), brushCanvasFbo.getHeight(), pix.getImageType());
@@ -739,7 +811,7 @@ void ofApp::loadBrush(int& brushId) {
 		for (int x = 0; x < brushCanvasFbo.getTexture().getHeight(); x++) {
 			if (x % brushCanvasMagnify == 0) {
 				xx++;
-				if (xx >= savedBrushRects[0].getWidth()) xx = 0;
+				if (xx >= brushMenuRects[0].getWidth()) xx = 0;
 			}
 			biggifiedPix.setColor(x, y, pix.getColor(xx, yy));
 		}
@@ -756,7 +828,7 @@ void ofApp::loadBrush(int& brushId) {
 //--------------------------------------------------------------
 void ofApp::loadBrushesFromFile() {
 	int i = 0;
-	for (auto fbo : savedBrushFbos) {
+	for (auto fbo : brushMenuFbos) {
 		ofImage img;
 		ofFile f;
 
@@ -847,11 +919,11 @@ void ofApp::keyReleased(int key) {
 
 //--------------------------------------------------------------
 void ofApp::mouseMoved(int x, int y) {
-	int savedBrushRectX = x + (savedBrushRects[0].getWidth() / 2);
-	int savedBrushRectY = y + (savedBrushRects[0].getHeight() / 2);
+	int savedBrushRectX = x + (brushMenuRects[0].getWidth() / 2);
+	int savedBrushRectY = y + (brushMenuRects[0].getHeight() / 2);
 
-	for (int i = 0; i < savedBrushRects.size(); i++) {
-		if (savedBrushRects[i].inside(savedBrushRectX, savedBrushRectY)) {
+	for (int i = 0; i < brushMenuRects.size(); i++) {
+		if (brushMenuRects[i].inside(savedBrushRectX, savedBrushRectY)) {
 			hoveredBrush = i;
 			return;
 		}
@@ -908,11 +980,11 @@ void ofApp::mouseReleased(int x, int y, int button) {
 	}
 
 	/// ----- Brush selection
-	int savedBrushRectX = x + (savedBrushRects[0].getWidth() / 2);
-	int savedBrushRectY = y + (savedBrushRects[0].getHeight() / 2);
+	int savedBrushRectX = x + (brushMenuRects[0].getWidth() / 2);
+	int savedBrushRectY = y + (brushMenuRects[0].getHeight() / 2);
 
-	for (int i = 0; i < savedBrushRects.size(); i++) {
-		if (savedBrushRects[i].inside(savedBrushRectX, savedBrushRectY)) {
+	for (int i = 0; i < brushMenuRects.size(); i++) {
+		if (brushMenuRects[i].inside(savedBrushRectX, savedBrushRectY)) {
 			selectedBrush = i;
 			loadBrush(i);
 			return;
@@ -930,7 +1002,10 @@ void ofApp::mouseExited(int x, int y) {
 
 //--------------------------------------------------------------
 void ofApp::windowResized(int w, int h) {
+	cout << "Window resized." << endl;
 	//loadPaintingModal.scrollBar.windowResized(w, h);
+	canvasContainerMaxSz = { ofGetWidth() - windowMargin * 2, ofGetHeight() - windowMargin * 2 - brushCanvasRect.getHeight() - status.getHeight() };
+	canvasContainer.set(mainCanvasPos.x, mainCanvasPos.y, canvasContainerMaxSz.x, mainCanvasRect.getHeight());
 }
 
 //--------------------------------------------------------------
