@@ -50,6 +50,12 @@ public:
 	};
 
 	//--------------------------------------------------------------
+	void setTextFields(string& xField, string& yField) {
+		m_setWidthInput = xField;
+		m_setHeightInput = yField;
+	}
+
+	//--------------------------------------------------------------
 	void keyPressed(int key) {
 		if (window.isVisible()) window.keyPressed(key);
 	}

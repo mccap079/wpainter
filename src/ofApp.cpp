@@ -31,7 +31,7 @@ void ofApp::setup() {
 
 	/// Main canvas scrollable container
 	canvasContainerMaxSz = { ofGetWidth() - windowMargin * 2, ofGetHeight() - windowMargin * 2 - brushCanvasRect.getHeight() - status.getHeight() };
-	canvasContainer.set(mainCanvasRect.getLeft(), mainCanvasRect.getTop(), canvasContainerMaxSz.x, mainCanvasRect.getHeight());
+	canvasContainer.set(mainCanvasRect.getLeft(), mainCanvasRect.getTop(), mainCanvasRect.getWidth(), mainCanvasRect.getHeight());
 
 	canvasContainerFbo.allocate(canvasContainer.getWidth(), canvasContainer.getHeight(), GL_RGBA);
 	canvasContainerFbo.begin();
@@ -348,20 +348,20 @@ void ofApp::draw() {
 
 	/// ----- Draw main canvas
 
-	ofSetRectMode(OF_RECTMODE_CENTER);
+	ofSetRectMode(OF_RECTMODE_CORNER);
 
 	/// Canvas border
 	ofSetColor(canvasBorderCol);
-	ofDrawRectangle(mainCanvasPos.x + 1,
-		mainCanvasPos.y + 1,
-		mainCanvasSize.x + 3,
-		mainCanvasSize.y + 3);
+	ofDrawRectangle(canvasContainer.getLeft() - 1,
+		canvasContainer.getTop() - 1,
+		canvasContainer.getWidth() + 2,
+		canvasContainer.getHeight() + 2);
 
 	/// Canvas
 	ofSetRectMode(OF_RECTMODE_CORNER);
 	ofSetColor(canvasBgCol);
 	canvasContainerFbo.begin(); {
-		mainCanvasBgFbo.draw(0, 0);
+		mainCanvasBgFbo.draw(0, canvasScrollY);
 	}canvasContainerFbo.end();
 	ofSetRectMode(OF_RECTMODE_CENTER);
 
@@ -441,18 +441,11 @@ void ofApp::draw() {
 
 	/// ----- Modals
 
+	ofSetRectMode(OF_RECTMODE_CORNER);
+
 	canvasDimsModal.draw();
 
 	loadPaintingModal.draw(selectionHighlight);
-
-	ofSetColor(ofColor::red);
-	ofSetRectMode(OF_RECTMODE_CENTER);
-	ofNoFill();
-	ofDrawRectangle(ofGetMouseX(),
-		ofGetMouseY(),
-		canvasContainer.getWidth(),
-		canvasContainer.getHeight());
-	ofFill();
 }
 
 //--------------------------------------------------------------
@@ -496,6 +489,7 @@ void ofApp::drawGuis() {
 
 //--------------------------------------------------------------
 void ofApp::ShowSetSizeModal() {
+	canvasDimsModal.setTextFields(ofToString(mainCanvasFbo.getWidth()), ofToString(mainCanvasFbo.getHeight()));
 	canvasDimsModal.window.toggleVisible(true);
 }
 
@@ -601,8 +595,8 @@ void ofApp::setBrushAnchor_center(bool& b) {
 
 //--------------------------------------------------------------
 void ofApp::updateMainCanvas() {
-	int x = ofGetMouseX() - mainCanvasRect.getLeft();
-	int y = ofGetMouseY() - mainCanvasRect.getTop();
+	int x = (ofGetMouseX() - mainCanvasRect.getLeft()) - canvasScrollX;
+	int y = (ofGetMouseY() - mainCanvasRect.getTop()) - canvasScrollY;
 
 	glm::vec2 anchor = { (x + (brushCanvasComputeSize.x / 2)),
 			y + (brushCanvasComputeSize.y / 2) };
@@ -955,10 +949,7 @@ void ofApp::mouseMoved(int x, int y) {
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button) {
 	if (canvasDimsModal.window.isVisible()) return;
-	else if (loadPaintingModal.window.isVisible()) {
-		//loadPaintingModal.scrollBar.mouseDragged(x, y, button);
-		return;
-	}
+	else if (loadPaintingModal.window.isVisible()) return;
 
 	bPaintingInBrushCanvas = brushCanvasRect.inside(x, y) ? 1 : 0;
 	bPaintingInMainCanvas = mainCanvasRect.inside(x, y) ? 1 : 0;
@@ -1027,6 +1018,8 @@ void ofApp::mouseScrolled(int x, int y, float scrollX, float scrollY) {
 			int maxScrollY = (mainCanvasRect.getHeight() - canvasContainerFbo.getHeight()) * -1;
 			if (canvasScrollY > 0) canvasScrollY = 0;
 			else if (canvasScrollY < maxScrollY) canvasScrollY = maxScrollY;
+
+			cout << "canvasScrollY: " << canvasScrollY << endl;
 		}
 	}
 }
