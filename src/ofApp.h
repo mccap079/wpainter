@@ -4,7 +4,7 @@
 #include "Button.h"
 #include "ofxGui.h"
 #include "ofxGuiExtended2.h"
-//#include "ScrollBar.h"
+#include "ScrollBar.h"
 #include "BrushAnchor.h"
 #include "StatusBar.h"
 #include "ModalWindow.h"
@@ -50,11 +50,13 @@ public:
 	glm::vec2 mainCanvasPos, brushCanvasPos;
 
 	/// Canvas scrolling
+	ScrollBar scrollbar;
 	glm::vec2 canvasContainerMaxSz;
 	ofRectangle canvasContainer;
 	ofFbo canvasContainerFbo;
 	int maxTexSz = 0;
 	int canvasScrollX, canvasScrollY;
+	bool isCanvasTooBigX, isCanvasTooBigY;
 
 	/// Brush drawing stuff
 

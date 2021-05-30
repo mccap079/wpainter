@@ -25,18 +25,40 @@ void ofApp::setup() {
 	canvasScrollX = 0;
 	canvasScrollY = 0;
 
-	/// Brush canvas
-
-	setBrushCanvasRect();
-
 	/// Main canvas scrollable container
-	canvasContainerMaxSz = { ofGetWidth() - windowMargin * 2, ofGetHeight() - windowMargin * 2 - brushCanvasRect.getHeight() - status.getHeight() };
-	canvasContainer.set(mainCanvasRect.getLeft(), mainCanvasRect.getTop(), mainCanvasRect.getWidth(), mainCanvasRect.getHeight());
+
+	/// Container should be mainCanvas size by default
+	canvasContainer.set(
+		mainCanvasRect.getLeft(),
+		mainCanvasRect.getTop(),
+		mainCanvasRect.getWidth(),
+		mainCanvasRect.getHeight());
 
 	canvasContainerFbo.allocate(canvasContainer.getWidth(), canvasContainer.getHeight(), GL_RGBA);
 	canvasContainerFbo.begin();
 	ofClear(255, 255, 255, 0);
 	canvasContainerFbo.end();
+
+	/// Brush canvas
+
+	/*void ofApp::setBrushCanvasRect() {
+		brushCanvasPos = { windowMargin + (brushCanvasDisplaySize.y / 2),
+								canvasContainer.getBottom() + windowMargin + (brushCanvasDisplaySize.y / 2) };
+
+		brushCanvasRect.set(brushCanvasPos.x - (brushCanvasDisplaySize.x / 2),
+			brushCanvasPos.y - (brushCanvasDisplaySize.y / 2),
+			brushCanvasDisplaySize.x,
+			brushCanvasDisplaySize.y);
+	}*/
+
+	setBrushCanvasRect();
+
+	canvasContainerMaxSz = {
+		ofGetWidth() - windowMargin * 2,
+		ofGetHeight() - (windowMargin * 4) - brushCanvasRect.getHeight() - status.getHeight() - 100 };
+
+	cout << "canvasContainerMaxSz: " << canvasContainerMaxSz << endl;
+	//cout << "canvasContainerMaxSz.x = ofGetWidth() [" << ofGetWidth() << "] - (windowMargin * 2) [" << (windowMargin * 2) << "] = " << canvasContainerMaxSz.x << endl;
 
 	/// Canvas transparent grid bgs
 
@@ -71,7 +93,7 @@ void ofApp::setup() {
 
 	brushAnchor.setup(brushCanvasPos, brushCanvasDisplaySize);
 
-	/// ----- Status bars
+	/// ----- Status bar
 
 	float fpsTxtLen = (88 + (windowMargin * 2));
 	status.setup({ mainCanvasRect.getLeft() + fpsTxtLen,
@@ -119,6 +141,12 @@ void ofApp::setup() {
 
 	loadPaintingModal.setup();
 	ofAddListener(loadPaintingModal.loadPainting, this, &ofApp::loadPainting);
+
+	/// ----- Scrollbar
+
+	scrollbar.setup(canvasContainer, mainCanvasRect);
+	isCanvasTooBigX = false;
+	isCanvasTooBigY = false;
 
 	status.say("Welcome artist ^ - ^");
 } /// end setup
@@ -335,6 +363,7 @@ void ofApp::update() {
 
 	canvasDimsModal.update();
 	loadPaintingModal.update();
+	scrollbar.update(mainCanvasRect, canvasScrollX, canvasScrollY);
 }
 
 //--------------------------------------------------------------
@@ -350,6 +379,10 @@ void ofApp::draw() {
 
 	ofSetRectMode(OF_RECTMODE_CORNER);
 
+	/// Canvas container
+	ofSetColor(0, 255, 0);
+	ofDrawRectangle(canvasContainer);
+
 	/// Canvas border
 	ofSetColor(canvasBorderCol);
 	ofDrawRectangle(canvasContainer.getLeft() - 1,
@@ -361,7 +394,7 @@ void ofApp::draw() {
 	ofSetRectMode(OF_RECTMODE_CORNER);
 	ofSetColor(canvasBgCol);
 	canvasContainerFbo.begin(); {
-		mainCanvasBgFbo.draw(0, canvasScrollY);
+		mainCanvasBgFbo.draw(canvasScrollX, canvasScrollY);
 	}canvasContainerFbo.end();
 	ofSetRectMode(OF_RECTMODE_CENTER);
 
@@ -426,7 +459,7 @@ void ofApp::draw() {
 	if (bPaintingInMainCanvas) updateMainCanvas();
 	canvasContainerFbo.begin(); {
 		ofSetRectMode(OF_RECTMODE_CORNER);
-		mainCanvasFbo.draw(0, canvasScrollY);
+		mainCanvasFbo.draw(canvasScrollX, canvasScrollY);
 	}canvasContainerFbo.end();
 
 	ofSetRectMode(OF_RECTMODE_CORNER);
@@ -446,6 +479,10 @@ void ofApp::draw() {
 	canvasDimsModal.draw();
 
 	loadPaintingModal.draw(selectionHighlight);
+
+	/// ----- Scrollbar
+
+	scrollbar.draw(isCanvasTooBigX, isCanvasTooBigY);
 }
 
 //--------------------------------------------------------------
@@ -651,6 +688,9 @@ void ofApp::setCanvasDims(int& i) {
 
 //--------------------------------------------------------------
 void ofApp::resizeCanvas(int w, int h) {
+	canvasScrollX = 0;
+	canvasScrollY = 0;
+
 	if (w < 1) w = 1;
 	else if (w > maxTexSz) w = maxTexSz;
 
@@ -671,24 +711,47 @@ void ofApp::resizeCanvas(int w, int h) {
 		mainCanvasSize.x,
 		mainCanvasSize.y);
 
-	/// Recheck if canvas.height is > canvasContainerSz
+	/// Recheck if canvas.height is > canvasContainerMaxSz
 
 	if (mainCanvasRect.getHeight() <= canvasContainerMaxSz.y) {
 		canvasContainer.height = mainCanvasRect.getHeight();
+		isCanvasTooBigY = false;
 	}
 	else if (mainCanvasRect.getHeight() > canvasContainerMaxSz.y) {
 		canvasContainer.height = canvasContainerMaxSz.y;
+		isCanvasTooBigY = true;
 	}
+
+	if (mainCanvasRect.getWidth() <= canvasContainerMaxSz.x) {
+		canvasContainer.width = mainCanvasRect.getWidth();
+		isCanvasTooBigX = false;
+	}
+	else if (mainCanvasRect.getWidth() > canvasContainerMaxSz.x) {
+		canvasContainer.width = canvasContainerMaxSz.x;
+		isCanvasTooBigX = true;
+	}
+
+	canvasContainerFbo.allocate(canvasContainer.getWidth(), canvasContainer.getHeight(), GL_RGBA);
+	canvasContainerFbo.begin();
+	ofClear(255, 255, 255, 0);
+	canvasContainerFbo.end();
+
+	cout << "resizeCanvas() -----" <<
+		"\ncanvasContainer = " << canvasContainer.getWidth() << ", " << canvasContainer.getHeight() <<
+		"\nmainCanvas = " << mainCanvasRect.getWidth() << ", " << mainCanvasRect.getHeight() <<
+		"\nMaxSz = " << canvasContainerMaxSz << endl;
 
 	setBrushCanvasRect();
 	setBrushMenuPos();
 	setGuiPos();
+	scrollbar.setup(canvasContainer, mainCanvasRect);
+	makeMainCanvasBg();
 }
 
 //--------------------------------------------------------------
 void ofApp::setBrushCanvasRect() {
 	brushCanvasPos = { windowMargin + (brushCanvasDisplaySize.y / 2),
-						 mainCanvasRect.getBottom() + windowMargin + (brushCanvasDisplaySize.y / 2) };
+						 canvasContainer.getBottom() + windowMargin + (brushCanvasDisplaySize.y / 2) };
 
 	brushCanvasRect.set(brushCanvasPos.x - (brushCanvasDisplaySize.x / 2),
 		brushCanvasPos.y - (brushCanvasDisplaySize.y / 2),
@@ -1008,20 +1071,33 @@ void ofApp::mouseScrolled(int x, int y, float scrollX, float scrollY) {
 	/// scrollX:	LF = -1,	RT = 1
 	/// (x,y) = mouse pos
 
+	cout << "ofApp::mouseScrolled";
+
 	int amt = 10;
 
 	if (canvasContainer.inside(x, y)) {
 		if (mainCanvasRect.getHeight() > canvasContainer.getHeight()) { /// if canvas is bigger than max canvas size
-			//xx += scrollX * amt;
 			canvasScrollY += scrollY * amt;
 
 			int maxScrollY = (mainCanvasRect.getHeight() - canvasContainerFbo.getHeight()) * -1;
 			if (canvasScrollY > 0) canvasScrollY = 0;
 			else if (canvasScrollY < maxScrollY) canvasScrollY = maxScrollY;
+		}
 
-			cout << "canvasScrollY: " << canvasScrollY << endl;
+		if (mainCanvasRect.getWidth() > canvasContainer.getWidth()) { /// if canvas is bigger than max canvas size
+			canvasScrollX += scrollX * amt;
+
+			int maxScrollX = (mainCanvasRect.getWidth() - canvasContainerFbo.getWidth()) * -1;
+			if (canvasScrollX > 0) canvasScrollX = 0;
+			else if (canvasScrollX < maxScrollX) canvasScrollX = maxScrollX;
+
+			cout << "\tcanvasScrollX: " << canvasScrollX;
+		}
+		else {
+			cout << "\t mainCanvasRect.getWidth() (" << mainCanvasRect.getWidth() << ") is not greater than canvasContainer width (" << canvasContainer.getWidth();
 		}
 	}
+	cout << endl;
 }
 
 //--------------------------------------------------------------
