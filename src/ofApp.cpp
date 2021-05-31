@@ -736,10 +736,10 @@ void ofApp::resizeCanvas(int w, int h) {
 	ofClear(255, 255, 255, 0);
 	canvasContainerFbo.end();
 
-	cout << "resizeCanvas() -----" <<
+	/*cout << "resizeCanvas() -----" <<
 		"\ncanvasContainer = " << canvasContainer.getWidth() << ", " << canvasContainer.getHeight() <<
 		"\nmainCanvas = " << mainCanvasRect.getWidth() << ", " << mainCanvasRect.getHeight() <<
-		"\nMaxSz = " << canvasContainerMaxSz << endl;
+		"\nMaxSz = " << canvasContainerMaxSz << endl;*/
 
 	setBrushCanvasRect();
 	setBrushMenuPos();
@@ -896,7 +896,6 @@ void ofApp::loadBrush(int& brushId) {
 	brushCanvasFbo.getTextureReference().setTextureMinMagFilter(GL_NEAREST, GL_NEAREST);
 	brushCanvasFbo.getTextureReference().loadData(biggifiedPix);
 
-	//    std::cout << "Brush loaded!" << endl;
 	status.say("Brush loaded!");
 	updateBrush();
 }
@@ -1006,7 +1005,8 @@ void ofApp::mouseMoved(int x, int y) {
 		else hoveredBrush = -1;
 	}
 
-	//if (loadPaintingModal.window.isVisible()) loadPaintingModal.scrollBar.mouseMoved(x, y);
+	/// ----- Scrollbars
+	scrollbar.mouseMoved(x, y);
 }
 
 //--------------------------------------------------------------
@@ -1034,6 +1034,9 @@ void ofApp::mousePressed(int x, int y, int button) {
 	/// ----- Canvas painting
 	bPaintingInBrushCanvas = brushCanvasRect.inside(x, y) ? 1 : 0;
 	bPaintingInMainCanvas = mainCanvasRect.inside(x, y) ? 1 : 0;
+
+	/// ----- Scrollbars
+	scrollbar.mousePressed(x, y);
 }
 
 //--------------------------------------------------------------
@@ -1067,17 +1070,11 @@ void ofApp::mouseReleased(int x, int y, int button) {
 
 //--------------------------------------------------------------
 void ofApp::mouseScrolled(int x, int y, float scrollX, float scrollY) {
-	/// scrollY:	UP = 1,		DN = -1
-	/// scrollX:	LF = -1,	RT = 1
-	/// (x,y) = mouse pos
-
-	cout << "ofApp::mouseScrolled";
-
-	int amt = 10;
+	int speed = 10;
 
 	if (canvasContainer.inside(x, y)) {
 		if (mainCanvasRect.getHeight() > canvasContainer.getHeight()) { /// if canvas is bigger than max canvas size
-			canvasScrollY += scrollY * amt;
+			canvasScrollY += scrollY * speed;
 
 			int maxScrollY = (mainCanvasRect.getHeight() - canvasContainerFbo.getHeight()) * -1;
 			if (canvasScrollY > 0) canvasScrollY = 0;
@@ -1085,19 +1082,13 @@ void ofApp::mouseScrolled(int x, int y, float scrollX, float scrollY) {
 		}
 
 		if (mainCanvasRect.getWidth() > canvasContainer.getWidth()) { /// if canvas is bigger than max canvas size
-			canvasScrollX += scrollX * amt;
+			canvasScrollX += scrollX * speed;
 
 			int maxScrollX = (mainCanvasRect.getWidth() - canvasContainerFbo.getWidth()) * -1;
 			if (canvasScrollX > 0) canvasScrollX = 0;
 			else if (canvasScrollX < maxScrollX) canvasScrollX = maxScrollX;
-
-			cout << "\tcanvasScrollX: " << canvasScrollX;
-		}
-		else {
-			cout << "\t mainCanvasRect.getWidth() (" << mainCanvasRect.getWidth() << ") is not greater than canvasContainer width (" << canvasContainer.getWidth();
 		}
 	}
-	cout << endl;
 }
 
 //--------------------------------------------------------------
@@ -1110,7 +1101,7 @@ void ofApp::mouseExited(int x, int y) {
 
 //--------------------------------------------------------------
 void ofApp::windowResized(int w, int h) {
-	cout << "Window resized." << endl;
+	//cout << "Window resized." << endl;
 	////loadPaintingModal.scrollBar.windowResized(w, h);
 	//canvasContainerMaxSz = { ofGetWidth() - windowMargin * 2, ofGetHeight() - windowMargin * 2 - brushCanvasRect.getHeight() - status.getHeight() };
 	//	canvasContainer.set(mainCanvasRect.getLeft(), mainCanvasRect.getTop(), canvasContainerMaxSz.x, mainCanvasRect.getHeight());
