@@ -38,7 +38,7 @@ public:
 	ofFbo mainCanvasBgFbo, brushCanvasBgFbo;
 
 	const int windowMargin = 10;
-	glm::vec2 mainCanvasSize = { 960, 600 };
+	glm::vec2 mainCanvasSize = { 960, 580 };
 	const int brushCanvasMagnify = 8;
 	const glm::vec2 brushCanvasComputeSize = { 25, 25 };
 	const glm::vec2 brushCanvasDisplaySize = { brushCanvasComputeSize.x * brushCanvasMagnify,

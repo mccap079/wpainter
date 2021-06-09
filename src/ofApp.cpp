@@ -41,24 +41,13 @@ void ofApp::setup() {
 
 	/// Brush canvas
 
-	/*void ofApp::setBrushCanvasRect() {
-		brushCanvasPos = { windowMargin + (brushCanvasDisplaySize.y / 2),
-								canvasContainer.getBottom() + windowMargin + (brushCanvasDisplaySize.y / 2) };
-
-		brushCanvasRect.set(brushCanvasPos.x - (brushCanvasDisplaySize.x / 2),
-			brushCanvasPos.y - (brushCanvasDisplaySize.y / 2),
-			brushCanvasDisplaySize.x,
-			brushCanvasDisplaySize.y);
-	}*/
-
 	setBrushCanvasRect();
 
 	canvasContainerMaxSz = {
-		ofGetWidth() - windowMargin * 2,
+		ofGetWidth() - windowMargin * 2 - scrollbar.getSize(),
 		ofGetHeight() - (windowMargin * 4) - brushCanvasRect.getHeight() - status.getHeight() - 100 };
 
 	cout << "canvasContainerMaxSz: " << canvasContainerMaxSz << endl;
-	//cout << "canvasContainerMaxSz.x = ofGetWidth() [" << ofGetWidth() << "] - (windowMargin * 2) [" << (windowMargin * 2) << "] = " << canvasContainerMaxSz.x << endl;
 
 	/// Canvas transparent grid bgs
 
@@ -363,7 +352,7 @@ void ofApp::update() {
 
 	canvasDimsModal.update();
 	loadPaintingModal.update();
-	scrollbar.update(mainCanvasRect, canvasScrollX, canvasScrollY);
+	scrollbar.update(canvasContainer, mainCanvasRect);
 }
 
 //--------------------------------------------------------------
@@ -468,6 +457,12 @@ void ofApp::draw() {
 
 	ofSetRectMode(OF_RECTMODE_CENTER);
 
+	/// ----- Scrollbar
+
+	ofSetRectMode(OF_RECTMODE_CORNER);
+
+	scrollbar.draw(isCanvasTooBigX, isCanvasTooBigY);
+
 	/// ----- Draw UI
 
 	drawGuis();
@@ -479,10 +474,6 @@ void ofApp::draw() {
 	canvasDimsModal.draw();
 
 	loadPaintingModal.draw(selectionHighlight);
-
-	/// ----- Scrollbar
-
-	scrollbar.draw(isCanvasTooBigX, isCanvasTooBigY);
 }
 
 //--------------------------------------------------------------
@@ -736,11 +727,6 @@ void ofApp::resizeCanvas(int w, int h) {
 	ofClear(255, 255, 255, 0);
 	canvasContainerFbo.end();
 
-	/*cout << "resizeCanvas() -----" <<
-		"\ncanvasContainer = " << canvasContainer.getWidth() << ", " << canvasContainer.getHeight() <<
-		"\nmainCanvas = " << mainCanvasRect.getWidth() << ", " << mainCanvasRect.getHeight() <<
-		"\nMaxSz = " << canvasContainerMaxSz << endl;*/
-
 	setBrushCanvasRect();
 	setBrushMenuPos();
 	setGuiPos();
@@ -751,7 +737,7 @@ void ofApp::resizeCanvas(int w, int h) {
 //--------------------------------------------------------------
 void ofApp::setBrushCanvasRect() {
 	brushCanvasPos = { windowMargin + (brushCanvasDisplaySize.y / 2),
-						 canvasContainer.getBottom() + windowMargin + (brushCanvasDisplaySize.y / 2) };
+						 canvasContainer.getBottom() + scrollbar.getSize() + windowMargin + (brushCanvasDisplaySize.y / 2) };
 
 	brushCanvasRect.set(brushCanvasPos.x - (brushCanvasDisplaySize.x / 2),
 		brushCanvasPos.y - (brushCanvasDisplaySize.y / 2),
@@ -1014,6 +1000,11 @@ void ofApp::mouseDragged(int x, int y, int button) {
 	if (canvasDimsModal.window.isVisible()) return;
 	else if (loadPaintingModal.window.isVisible()) return;
 
+	/// --- Scrollbars
+	scrollbar.mouseDragged(x, y, canvasScrollX, canvasScrollY);
+	if (scrollbar.isSelectedX()) return;
+	else if (scrollbar.isSelectedY()) return;
+
 	bPaintingInBrushCanvas = brushCanvasRect.inside(x, y) ? 1 : 0;
 	bPaintingInMainCanvas = mainCanvasRect.inside(x, y) ? 1 : 0;
 }
@@ -1031,12 +1022,14 @@ void ofApp::mousePressed(int x, int y, int button) {
 		return;
 	}
 
+	/// --- Scrollbars
+	scrollbar.mousePressed(x, y, canvasScrollX, canvasScrollY);
+	if (scrollbar.isSelectedX()) return;
+	else if (scrollbar.isSelectedY()) return;
+
 	/// ----- Canvas painting
 	bPaintingInBrushCanvas = brushCanvasRect.inside(x, y) ? 1 : 0;
 	bPaintingInMainCanvas = mainCanvasRect.inside(x, y) ? 1 : 0;
-
-	/// ----- Scrollbars
-	scrollbar.mousePressed(x, y);
 }
 
 //--------------------------------------------------------------
@@ -1056,16 +1049,21 @@ void ofApp::mouseReleased(int x, int y, int button) {
 	}
 
 	/// ----- Brush selection
-	int savedBrushRectX = x + (brushMenuRects[0].getWidth() / 2);
-	int savedBrushRectY = y + (brushMenuRects[0].getHeight() / 2);
+	if (!scrollbar.isSelectedX() && !scrollbar.isSelectedY()) {
+		int savedBrushRectX = x + (brushMenuRects[0].getWidth() / 2);
+		int savedBrushRectY = y + (brushMenuRects[0].getHeight() / 2);
 
-	for (int i = 0; i < brushMenuRects.size(); i++) {
-		if (brushMenuRects[i].inside(savedBrushRectX, savedBrushRectY)) {
-			selectedBrush = i;
-			loadBrush(i);
-			return;
+		for (int i = 0; i < brushMenuRects.size(); i++) {
+			if (brushMenuRects[i].inside(savedBrushRectX, savedBrushRectY)) {
+				selectedBrush = i;
+				loadBrush(i);
+				return;
+			}
 		}
 	}
+
+	/// --- Scrollbars
+	scrollbar.mouseReleased();
 }
 
 //--------------------------------------------------------------
@@ -1088,6 +1086,8 @@ void ofApp::mouseScrolled(int x, int y, float scrollX, float scrollY) {
 			if (canvasScrollX > 0) canvasScrollX = 0;
 			else if (canvasScrollX < maxScrollX) canvasScrollX = maxScrollX;
 		}
+
+		scrollbar.mouseScrolled(canvasScrollX, canvasScrollY);
 	}
 }
 
