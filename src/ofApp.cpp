@@ -1101,10 +1101,42 @@ void ofApp::mouseExited(int x, int y) {
 
 //--------------------------------------------------------------
 void ofApp::windowResized(int w, int h) {
-	//cout << "Window resized." << endl;
+	cout << "Window resized." << endl;
 	////loadPaintingModal.scrollBar.windowResized(w, h);
-	//canvasContainerMaxSz = { ofGetWidth() - windowMargin * 2, ofGetHeight() - windowMargin * 2 - brushCanvasRect.getHeight() - status.getHeight() };
-	//	canvasContainer.set(mainCanvasRect.getLeft(), mainCanvasRect.getTop(), canvasContainerMaxSz.x, mainCanvasRect.getHeight());
+	canvasContainerMaxSz = {
+		ofGetWidth() - windowMargin * 2 - scrollbar.getSize(),
+		ofGetHeight() - (windowMargin * 4) - brushCanvasRect.getHeight() - status.getHeight() - 100 };
+	/// Recheck if canvas.height is > canvasContainerMaxSz
+
+	if (mainCanvasRect.getHeight() <= canvasContainerMaxSz.y) {
+		canvasContainer.height = mainCanvasRect.getHeight();
+		isCanvasTooBigY = false;
+	}
+	else if (mainCanvasRect.getHeight() > canvasContainerMaxSz.y) {
+		canvasContainer.height = canvasContainerMaxSz.y;
+		isCanvasTooBigY = true;
+	}
+
+	if (mainCanvasRect.getWidth() <= canvasContainerMaxSz.x) {
+		canvasContainer.width = mainCanvasRect.getWidth();
+		isCanvasTooBigX = false;
+	}
+	else if (mainCanvasRect.getWidth() > canvasContainerMaxSz.x) {
+		canvasContainer.width = canvasContainerMaxSz.x;
+		isCanvasTooBigX = true;
+	}
+
+	canvasContainerFbo.allocate(canvasContainer.getWidth(), canvasContainer.getHeight(), GL_RGBA);
+	canvasContainerFbo.begin();
+	ofClear(255, 255, 255, 0);
+	canvasContainerFbo.end();
+
+	canvasScrollX = 0;
+	canvasScrollY = 0;
+	scrollbar.setup(canvasContainer, mainCanvasRect);
+	setBrushCanvasRect();
+	setBrushMenuPos();
+	setGuiPos();
 }
 
 //--------------------------------------------------------------
