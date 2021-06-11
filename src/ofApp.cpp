@@ -82,12 +82,6 @@ void ofApp::setup() {
 
 	brushAnchor.setup(brushCanvasPos, brushCanvasDisplaySize);
 
-	/// ----- Status bar
-
-	float fpsTxtLen = (88 + (windowMargin * 2));
-	status.setup({ mainCanvasRect.getLeft() + fpsTxtLen,
-		windowMargin }, mainCanvasRect.getWidth() - fpsTxtLen);
-
 	/// ----- Saved brushes
 
 	brushMenuPos =
@@ -118,6 +112,13 @@ void ofApp::setup() {
 	/// ------ GUI
 
 	setupGui();
+
+	/// ----- Status bar
+
+	fpsTxtLen = (((fpsLabel.size() + ofToString(ofGetFrameRate()).substr(0, 2).size()) * 8) + (windowMargin * 2));
+	statusBarMinLen = canvasPanel.getPosition().x + canvasPanel.getWidth();
+	status.setup({ mainCanvasRect.getLeft() + fpsTxtLen,
+		windowMargin }, canvasContainer.getWidth() - fpsTxtLen, statusBarMinLen);
 
 	/// ----- Modals
 
@@ -360,7 +361,7 @@ void ofApp::draw() {
 	ofBackground(ofColor::lightGray - 20);
 
 	ofSetColor(ofColor::black);
-	ofDrawBitmapString("FPS: " + ofToString(ofGetFrameRate()),
+	ofDrawBitmapString(fpsLabel + ofToString(ofGetFrameRate()).substr(0, 2),
 		mainCanvasRect.getLeft(),
 		status.getBottom() - 5);
 
@@ -481,8 +482,6 @@ void ofApp::setBrushMenuPos() {
 	brushMenuPos =
 	{ (brushCanvasRect.getRight() + windowMargin) + (brushCanvasComputeSize.x / 2),
 		brushCanvasRect.getTop() + (brushCanvasComputeSize.y / 2) };
-
-	cout << "brushMenuPos = " << brushMenuPos << endl;
 
 	int rowLength = 5;
 	int x = 0, y = 0;
@@ -741,6 +740,9 @@ void ofApp::resizeCanvas(int w, int h) {
 	setGuiPos();
 	scrollbar.setup(canvasContainer, mainCanvasRect);
 	makeMainCanvasBg();
+
+	/// Reset scrollbar length
+	status.setLength(canvasContainer.getWidth() - fpsTxtLen);
 }
 
 //--------------------------------------------------------------
@@ -1111,10 +1113,11 @@ void ofApp::mouseExited(int x, int y) {
 //--------------------------------------------------------------
 void ofApp::windowResized(int w, int h) {
 	cout << "Window resized." << endl;
-	////loadPaintingModal.scrollBar.windowResized(w, h);
+
 	canvasContainerMaxSz = {
 		ofGetWidth() - windowMargin * 2 - scrollbar.getSize(),
 		ofGetHeight() - (windowMargin * 4) - brushCanvasRect.getHeight() - status.getHeight() - 100 };
+
 	/// Recheck if canvas.height is > canvasContainerMaxSz
 
 	if (mainCanvasRect.getHeight() <= canvasContainerMaxSz.y) {
@@ -1146,6 +1149,13 @@ void ofApp::windowResized(int w, int h) {
 	setBrushCanvasRect();
 	setBrushMenuPos();
 	setGuiPos();
+
+	/// Reset scrollbar length
+	status.setLength(canvasContainer.getWidth() - fpsTxtLen);
+
+	/// Reset modal center pos
+	canvasDimsModal.resetCenterPos();
+	loadPaintingModal.resetCenterPos();
 }
 
 //--------------------------------------------------------------

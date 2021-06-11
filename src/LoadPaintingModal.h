@@ -262,6 +262,11 @@ public:
 	}
 
 	//--------------------------------------------------------------
+	void resetCenterPos() {
+		window.setPos({ ofGetWidth() / 2, ofGetHeight() / 2 });
+	}
+
+	//--------------------------------------------------------------
 	ModalWindow window;
 	ofEvent<int> loadPainting;
 private:

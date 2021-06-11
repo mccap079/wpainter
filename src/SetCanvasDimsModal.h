@@ -61,6 +61,11 @@ public:
 	}
 
 	//--------------------------------------------------------------
+	void resetCenterPos() {
+		window.setPos({ ofGetWidth() / 2, ofGetHeight() / 2 });
+	}
+
+	//--------------------------------------------------------------
 	string getWidthInput() { return m_setWidthInput.get(); };
 	string getHeightInput() { return m_setHeightInput.get(); };
 

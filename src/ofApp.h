@@ -166,6 +166,8 @@ public:
 	/// Status bars
 
 	StatusBar status;
+	int fpsTxtLen, statusBarMinLen;
+	const string fpsLabel = "FPS: ";
 
 	/// Set canvas size modal
 	void ShowSetSizeModal();
