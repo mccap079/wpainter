@@ -688,12 +688,21 @@ void ofApp::resizeCanvas(int w, int h) {
 	if (h < 1) h = 1;
 	else if (h > maxTexSz) h = maxTexSz;
 
+	ofFbo mainCanvasFboBackup = mainCanvasFbo;
+
 	mainCanvasSize = { w, h };
 	mainCanvasFbo.allocate(mainCanvasSize.x, mainCanvasSize.y, GL_RGBA);
+
+	mainCanvasFbo.begin();
+	ofClear(255, 255, 255, 0);
+	mainCanvasFboBackup.draw(0, 0);
+	mainCanvasFbo.end();
+
 	mainCanvasBgFbo.allocate(mainCanvasSize.x, mainCanvasSize.y, GL_RGB);
 	mainCanvasBgFbo.begin();
 	ofClear(255, 255, 255, 0);
 	mainCanvasBgFbo.end();
+
 	makeMainCanvasBg();
 	mainCanvasPos = { windowMargin + (mainCanvasSize.x / 2),
 						status.getHeight() + (windowMargin * 2) + (mainCanvasSize.y / 2) };
