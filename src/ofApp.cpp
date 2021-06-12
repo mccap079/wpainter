@@ -313,7 +313,7 @@ void ofApp::setupGui() {
 	canvas2Panel.setPosition(canvas2PanelPos);
 	canvas2Panel.add(canvas2PanelTitle.setup(canvas2PanelTitleStr));
 	canvas2Panel.add(toggleGridLabel.setup(toggleGridLabelTxt));
-	canvas2Panel.add(toggleGridBtn.setup(toggleGridBtnTxt, true));
+	canvas2Panel.add(toggleGridBtn.setup(toggleGridBtnTxt, false));
 
 	toggleGridBtn.setBackgroundColor(bgCol);
 	toggleGridBtn.setTextColor(ofColor::black);
