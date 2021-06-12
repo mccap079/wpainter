@@ -782,6 +782,8 @@ void ofApp::resizeCanvas(int w, int h) {
 
 	/// Reset scrollbar length
 	status.setLength(canvasContainer.getWidth() - fpsTxtLen);
+
+	status.say("Canvas resized to " + ofToString(w) + " x " + ofToString(h), StatusBar::UrgencyLevel::URGENCY_LEVEL_NORMAL);
 }
 
 //--------------------------------------------------------------
