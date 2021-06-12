@@ -303,6 +303,22 @@ void ofApp::setupGui() {
 	savePaintingBtn.addListener(this, &ofApp::savePainting);
 	loadPaintingBtn.addListener(this, &ofApp::showLoadPaintingModal);
 	setSizeBtn.addListener(this, &ofApp::ShowSetSizeModal);
+
+	/// Main canvas Pt 2 panel
+
+	canvas2PanelPos = { canvasPanel.getPosition().x + canvasPanel.getWidth() + windowMargin,
+		brushCanvasRect.getTop() };
+
+	canvas2Panel.setup();
+	canvas2Panel.setPosition(canvas2PanelPos);
+	canvas2Panel.add(canvas2PanelTitle.setup(canvas2PanelTitleStr));
+	canvas2Panel.add(toggleGridLabel.setup(toggleGridLabelTxt));
+	canvas2Panel.add(toggleGridBtn.setup(toggleGridBtnTxt, true));
+
+	toggleGridBtn.setBackgroundColor(bgCol);
+	toggleGridBtn.setTextColor(ofColor::black);
+	toggleGridBtn.setFillColor(ofColor::black);
+	toggleGridBtn.setBorderColor(ofColor::black);
 }
 
 //--------------------------------------------------------------
@@ -314,6 +330,10 @@ void ofApp::setGuiPos() {
 	canvasPanelPos = { brushPanel.getPosition().x + brushPanel.getWidth() + windowMargin,
 		brushCanvasRect.getTop() };
 	canvasPanel.setPosition(canvasPanelPos);
+
+	canvas2PanelPos = { canvasPanel.getPosition().x + canvasPanel.getWidth() + windowMargin,
+		brushCanvasRect.getTop() };
+	canvas2Panel.setPosition(canvas2PanelPos);
 }
 
 //--------------------------------------------------------------
@@ -511,6 +531,7 @@ void ofApp::drawGuis() {
 
 	brushPanel.draw();
 	canvasPanel.draw();
+	canvas2Panel.draw();
 	brushAnchor.draw();
 }
 
@@ -625,15 +646,33 @@ void ofApp::updateMainCanvas() {
 	int x = (ofGetMouseX() - mainCanvasRect.getLeft()) - canvasScrollX;
 	int y = (ofGetMouseY() - mainCanvasRect.getTop()) - canvasScrollY;
 
-	glm::vec2 anchor = { (x + (brushCanvasComputeSize.x / 2)),
+	if (toggleGridBtn) {
+		glm::vec2 anchor = { x + (brushCanvasComputeSize.x / 2),
 			y + (brushCanvasComputeSize.y / 2) };
-	if (bAnchorCenter) {
-		anchor = { x,y };
-	}
 
-	mainCanvasFbo.begin();
-	brush.draw(anchor.x, anchor.y, 26, 26);
-	mainCanvasFbo.end();
+		glm::vec2 p;
+		p.x = xPosInGrid(brushCanvasComputeSize.x + 1, anchor.x);
+		p.y = yPosInGrid(brushCanvasComputeSize.y + 1, anchor.y);
+
+		if (p == prevBrushCanvasGridPoint) return;
+
+		mainCanvasFbo.begin();
+		brush.draw(p.x, p.y, 26, 26);
+		mainCanvasFbo.end();
+
+		prevBrushCanvasGridPoint = p;
+	}
+	else {
+		glm::vec2 anchor = { x + (brushCanvasComputeSize.x / 2),
+				y + (brushCanvasComputeSize.y / 2) };
+		if (bAnchorCenter) {
+			anchor = { x,y };
+		}
+
+		mainCanvasFbo.begin();
+		brush.draw(anchor.x, anchor.y, 26, 26);
+		mainCanvasFbo.end();
+	}
 }
 
 //--------------------------------------------------------------
@@ -929,6 +968,20 @@ glm::vec2 ofApp::posInGrid(int gridSize, int x, int y) ///via https://stackoverf
 }
 
 //--------------------------------------------------------------
+int ofApp::xPosInGrid(int gridSize, int x)
+{
+	x = (int)(x / gridSize) * gridSize;
+	return x;
+}
+
+//--------------------------------------------------------------
+int ofApp::yPosInGrid(int gridSize, int y)
+{
+	y = (int)(y / gridSize) * gridSize;
+	return y;
+}
+
+//--------------------------------------------------------------
 void ofApp::makeMainCanvasBg() {
 	/// ----- Main canvas
 
@@ -1112,7 +1165,7 @@ void ofApp::mouseExited(int x, int y) {
 
 //--------------------------------------------------------------
 void ofApp::windowResized(int w, int h) {
-	cout << "Window resized." << endl;
+	//cout << "Window resized." << endl;
 
 	canvasContainerMaxSz = {
 		ofGetWidth() - windowMargin * 2 - scrollbar.getSize(),

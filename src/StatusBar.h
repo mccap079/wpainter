@@ -144,7 +144,6 @@ public:
 	}
 
 	void setLength(int len) {
-		cout << "status::setLength() " << len << endl;
 		reset();
 		if (len < m_minLength) len = m_minLength;
 		m_length = len;

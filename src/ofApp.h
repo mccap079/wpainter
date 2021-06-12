@@ -69,6 +69,8 @@ public:
 	void setBrushAnchor_center(bool& b);
 
 	glm::vec2 posInGrid(int gridSize, int x, int y);
+	int yPosInGrid(int gridSize, int y);
+	int xPosInGrid(int gridSize, int x);
 	glm::vec2 prevBrushCanvasGridPoint;
 	ofFbo brushCanvasFbo;
 	ofImage brush;
@@ -144,6 +146,16 @@ public:
 	ofxFloatSlider fillRed, fillGreen, fillBlue;
 	ofxLabel startOverLabel_mainCanvas;
 	ofxButton clearCanvasBtn;
+
+	/// Main canvas GUI pt 2
+	const string canvas2PanelTitleStr = "CANVAS SETTINGS CONT.";
+	const string toggleGridLabelTxt = "Canvas grid:";
+	const string toggleGridBtnTxt = "< Toggle grid mode";
+	ofxPanel canvas2Panel;
+	glm::vec2 canvas2PanelPos;
+	ofxLabel canvas2PanelTitle;
+	ofxLabel toggleGridLabel;
+	ofxToggle toggleGridBtn;
 
 	/// Saved brushes collection
 
