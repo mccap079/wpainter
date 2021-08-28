@@ -1211,6 +1211,9 @@ void ofApp::windowResized(int w, int h) {
 	/// Reset modal center pos
 	canvasDimsModal.resetCenterPos();
 	loadPaintingModal.resetCenterPos();
+
+	/// Reset brush anchor (for the animation)
+	brushAnchor.setup(brushCanvasPos, brushCanvasDisplaySize);
 }
 
 //--------------------------------------------------------------
