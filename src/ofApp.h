@@ -39,8 +39,8 @@ public:
 
 	const int windowMargin = 10;
 	glm::vec2 mainCanvasSize = { 960, 580 };
-	const int brushCanvasMagnify = 8;
-	const glm::vec2 brushCanvasComputeSize = { 25, 25 };
+	const int brushCanvasMagnify = 10;
+	const glm::vec2 brushCanvasComputeSize = { 24, 24 };
 	const glm::vec2 brushCanvasDisplaySize = { brushCanvasComputeSize.x * brushCanvasMagnify,
 											   brushCanvasComputeSize.y * brushCanvasMagnify };
 	const ofColor canvasBgCol = ofColor::white;

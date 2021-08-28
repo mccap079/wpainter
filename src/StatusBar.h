@@ -82,7 +82,9 @@ public:
 			break;
 		}
 
-		if (!m_txtStr.empty()) m_floatCounter += ofGetLastFrameTime() * m_speed;;
+		if (!m_txtStr.empty()) {
+			m_floatCounter += ofGetLastFrameTime() * m_speed;
+		}
 
 		if ((int)m_floatCounter != m_prevFloatCounterVal) {
 			m_txtPos.x -= m_charLen;

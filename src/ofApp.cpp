@@ -651,13 +651,13 @@ void ofApp::updateMainCanvas() {
 			y + (brushCanvasComputeSize.y / 2) };
 
 		glm::vec2 p;
-		p.x = xPosInGrid(brushCanvasComputeSize.x + 1, anchor.x);
-		p.y = yPosInGrid(brushCanvasComputeSize.y + 1, anchor.y);
+		p.x = xPosInGrid(brushCanvasComputeSize.x, anchor.x);
+		p.y = yPosInGrid(brushCanvasComputeSize.y, anchor.y);
 
 		if (p == prevBrushCanvasGridPoint) return;
 
 		mainCanvasFbo.begin();
-		brush.draw(p.x, p.y, 26, 26);
+		brush.draw(p.x, p.y, brushCanvasComputeSize.x, brushCanvasComputeSize.y);
 		mainCanvasFbo.end();
 
 		prevBrushCanvasGridPoint = p;
@@ -670,7 +670,7 @@ void ofApp::updateMainCanvas() {
 		}
 
 		mainCanvasFbo.begin();
-		brush.draw(anchor.x, anchor.y, 26, 26);
+		brush.draw(anchor.x, anchor.y, brushCanvasComputeSize.x, brushCanvasComputeSize.y);
 		mainCanvasFbo.end();
 	}
 }
@@ -1167,7 +1167,7 @@ void ofApp::mouseExited(int x, int y) {
 
 //--------------------------------------------------------------
 void ofApp::windowResized(int w, int h) {
-	//cout << "Window resized." << endl;
+	if (ofGetFrameNum() == 0) return;
 
 	canvasContainerMaxSz = {
 		ofGetWidth() - windowMargin * 2 - scrollbar.getSize(),
