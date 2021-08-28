@@ -36,6 +36,7 @@ public:
 		if (animState == ANIM_STATE_FLASH) {
 			ofPushStyle();
 			ofSetColor(ofColor::black);
+			ofSetRectMode(OF_RECTMODE_CENTER);
 			ofDrawRectangle(m_pos.x, m_pos.y, 12, 52);
 			ofDrawRectangle(m_pos.x, m_pos.y, 52, 12);
 			ofFill();
