@@ -537,7 +537,9 @@ void ofApp::drawGuis() {
 
 //--------------------------------------------------------------
 void ofApp::ShowSetSizeModal() {
-	canvasDimsModal.setTextFields(ofToString(mainCanvasFbo.getWidth()), ofToString(mainCanvasFbo.getHeight()));
+    string w = ofToString(mainCanvasFbo.getWidth());
+    string h = ofToString(mainCanvasFbo.getHeight());
+	canvasDimsModal.setTextFields(w, h);
 	canvasDimsModal.window.toggleVisible(true);
 }
 

@@ -4,11 +4,9 @@
 
 ---
 
-Wendypaint.com clone as a windows and macos native app. Not including a few features. Credit for the underlying idea goes to Kim Asendorf, creator of the now defunct wendypaint.com, who has nothing to do with this project otherwise. This has been built from scratch (using openframeworks) to match the original functionality.
+Wendypaint.com clone as a windows and macos native app. Not including a few features. Credit for the underlying idea goes to Kim Asendorf, creator of the now defunct wendypaint.com, who has nothing to do with this project otherwise. This has been built from scratch (using openframeworks) to match the original functionality, plus a few convenience features.
 
 Todo:
- - Change canvas size
- - Better painting loader
  - Autofill functions for brush canvas
  - Bleed fx
 
@@ -32,5 +30,5 @@ Download the Windows release from the Releases page, unzip and launch the bootle
 
 ### Loading brush packs
 
-To load a new set of brushes, copy the pngs from one of the collections in the brushPacks folder and paste them into the data/brushes/ folder. The png filenames have to be numbered 0-29 and 25x25 pixels or they either won't load or crash the app altogether.
+To load a new set of brushes, copy the pngs from one of the collections in the brushPacks folder and paste them into the data/brushes/ folder. The png filenames have to be numbered 0-29 and be 24x24 pixels or they either won't load or crash the app altogether.
 
