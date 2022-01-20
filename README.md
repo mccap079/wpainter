@@ -1,6 +1,6 @@
 # bootleg wendypaint
 
-![title img](https://github.com/mccap079/wpainter/blob/master/bin/data/paintings/title.png?raw=true)
+![title img](https://github.com/mccap079/wpainter/blob/master/title.png?raw=true)
 
 ---
 
