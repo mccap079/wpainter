@@ -943,13 +943,21 @@ void ofApp::loadBrush(int& brushId) {
 //--------------------------------------------------------------
 void ofApp::loadBrushesFromFile() {
 	int i = 0;
+	cout << "Loading brushes from file..." << endl;
 	for (auto fbo : brushMenuFbos) {
 		ofImage img;
 		ofFile f;
 
-		if (!f.doesFileExist(ofToDataPath("brushes/" + ofToString(i) + ".png"))) return;
+		cout << "i = " << i << endl;
+
+		if (!f.doesFileExist(ofToDataPath("brushes/" + ofToString(i) + ".png"))) {
+			cout << "Couldnt find file [" + ofToDataPath("brushes/" + ofToString(i) + ".png") + "]" << endl;
+			i++;
+			continue;
+		} else cout << "Found file at [" + ofToDataPath("brushes/" + ofToString(i) + ".png") + "]" << endl;
 
 		img.load(ofToDataPath("brushes/" + ofToString(i) + ".png"));
+
 		ofPixels p;
 		img.getTexture().readToPixels(p);
 
