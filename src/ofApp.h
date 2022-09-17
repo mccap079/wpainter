@@ -164,9 +164,10 @@ public:
 	void saveBrushToFile(ofPixels& p);
 	void loadBrushesFromFile();
 	void setBrushMenuPos();
+	void addNewBrushMenuSlot();
 
 	ofRectangle brushMenuRect;
-	const int numSavedBrushes = 30;
+	int numSavedBrushes = 30;
 	glm::vec2 brushMenuPos;
 	const int brushMenuPadding = windowMargin;
 	int selectedBrush = 0;
