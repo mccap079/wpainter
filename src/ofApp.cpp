@@ -958,6 +958,9 @@ void ofApp::loadBrushesFromFile() {
 
 		img.load(ofToDataPath("brushes/" + ofToString(i) + ".png"));
 
+		if (img.getWidth() > brushCanvasComputeSize.x)	img.cropFrom(img, 0, 0, brushCanvasComputeSize.x, img.getHeight());
+		if (img.getHeight() > brushCanvasComputeSize.y) img.cropFrom(img, 0, 0, img.getWidth(), brushCanvasComputeSize.y);
+
 		ofPixels p;
 		img.getTexture().readToPixels(p);
 

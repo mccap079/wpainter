@@ -40,7 +40,7 @@ public:
 	const int windowMargin = 10;
 	glm::vec2 mainCanvasSize = { 960, 580 };
 	const int brushCanvasMagnify = 10;
-	const glm::vec2 brushCanvasComputeSize = { 24, 24 };
+	const glm::vec2 brushCanvasComputeSize = { 24, 24 }; ///TODO: Make 24, allow larger pngs to be loaded but crop them at 24
 	const glm::vec2 brushCanvasDisplaySize = { brushCanvasComputeSize.x * brushCanvasMagnify,
 											   brushCanvasComputeSize.y * brushCanvasMagnify };
 	const ofColor canvasBgCol = ofColor::white;

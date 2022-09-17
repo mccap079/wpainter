@@ -15,7 +15,7 @@ Todo:
 
 ### macOS
 
-Download the macOS release from Releases page, unzip and launch the bootlegWendypaint/wpainter.app.
+Download the `v1.0` macOS release from the Releases page, unzip and launch bootlegWendypaint/wpainter.app.
 
 NOTE:
  - You may need to right-click > Open then click thru the warning dialog because I'm an unidentified developer.
@@ -23,9 +23,7 @@ NOTE:
 
 ### Windows
 
-Release TBD
-
-Download the Windows release from the Releases page, unzip and launch the bootlegWendypaint/wpainter.exe.
+Download the `v1.1` Windows release from the Releases page, unzip and launch bin/wPainter.exe.
 
 ## Usage
 
