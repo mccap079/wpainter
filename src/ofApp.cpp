@@ -28,13 +28,9 @@ void ofApp::setup() {
 	/// Main canvas scrollable container
 
 	/// Container should be mainCanvas size by default
-	canvasContainer.set(
-		mainCanvasRect.getLeft(),
-		mainCanvasRect.getTop(),
-		mainCanvasRect.getWidth(),
-		mainCanvasRect.getHeight());
+	canvasScrollableContainer.set(mainCanvasRect);
 
-	canvasContainerFbo.allocate(canvasContainer.getWidth(), canvasContainer.getHeight(), GL_RGBA);
+	canvasContainerFbo.allocate(canvasScrollableContainer.getWidth(), canvasScrollableContainer.getHeight(), GL_RGBA);
 	canvasContainerFbo.begin();
 	ofClear(255, 255, 255, 0);
 	canvasContainerFbo.end();
@@ -126,7 +122,7 @@ void ofApp::setup() {
 	fpsTxtLen = (((fpsLabel.size() + ofToString(ofGetFrameRate()).substr(0, 2).size()) * 8) + (windowMargin * 2));
 	statusBarMinLen = canvasPanel.getPosition().x + canvasPanel.getWidth();
 	status.setup({ mainCanvasRect.getLeft() + fpsTxtLen,
-		windowMargin }, canvasContainer.getWidth() - fpsTxtLen, statusBarMinLen);
+		windowMargin }, canvasScrollableContainer.getWidth() - fpsTxtLen, statusBarMinLen);
 
 	/// ----- Modals
 
@@ -140,13 +136,25 @@ void ofApp::setup() {
 	loadPaintingModal.setup();
 	ofAddListener(loadPaintingModal.loadPainting, this, &ofApp::loadPainting);
 
-	/// ----- Scrollbar
+	/// ----- Canvas Scrollbars
 
-	scrollbar.setup(canvasContainer, mainCanvasRect);
+	scrollbar.setup(canvasScrollableContainer, mainCanvasRect);
 	isCanvasTooBigX = false;
 	isCanvasTooBigY = false;
 
+	/// ----- Brush Menu scrollbar
+
+	brushMenuScrollableContainer.set(
+		brushMenuRect.getLeft(),
+		brushMenuRect.getTop(),
+		brushMenuRect.getWidth(),
+		brushCanvasRect.getHeight());
+
+	brushMenuScrollbar.setup(brushMenuScrollableContainer, brushMenuRect);
+
 	status.say("Welcome artist ^ - ^");
+
+
 } /// end setup
 
 //--------------------------------------------------------------
@@ -381,7 +389,8 @@ void ofApp::update() {
 
 	canvasDimsModal.update();
 	loadPaintingModal.update();
-	scrollbar.update(canvasContainer, mainCanvasRect);
+	scrollbar.update(canvasScrollableContainer, mainCanvasRect);
+	brushMenuScrollbar.update(brushMenuScrollableContainer, brushMenuRect);
 }
 
 //--------------------------------------------------------------
@@ -399,14 +408,14 @@ void ofApp::draw() {
 
 	/// Canvas container
 	ofSetColor(0, 255, 0);
-	ofDrawRectangle(canvasContainer);
+	ofDrawRectangle(canvasScrollableContainer);
 
 	/// Canvas border
 	ofSetColor(canvasBorderCol);
-	ofDrawRectangle(canvasContainer.getLeft() - 1,
-		canvasContainer.getTop() - 1,
-		canvasContainer.getWidth() + 2,
-		canvasContainer.getHeight() + 2);
+	ofDrawRectangle(canvasScrollableContainer.getLeft() - 1,
+		canvasScrollableContainer.getTop() - 1,
+		canvasScrollableContainer.getWidth() + 2,
+		canvasScrollableContainer.getHeight() + 2);
 
 	/// Canvas
 	ofSetRectMode(OF_RECTMODE_CORNER);
@@ -437,6 +446,10 @@ void ofApp::draw() {
 	status.draw();
 
 	/// ----- Saved brushes
+
+	ofSetColor(ofColor::red);
+	ofSetRectMode(OF_RECTMODE_CORNER);
+	ofDrawRectangle(brushMenuScrollableContainer);
 
 	brushMenuFbo.begin(); 
 	{
@@ -516,7 +529,7 @@ void ofApp::draw() {
 
 	ofSetRectMode(OF_RECTMODE_CORNER);
 
-	canvasContainerFbo.draw(canvasContainer.getLeft(), canvasContainer.getTop());
+	canvasContainerFbo.draw(canvasScrollableContainer.getLeft(), canvasScrollableContainer.getTop());
 
 	ofSetRectMode(OF_RECTMODE_CENTER);
 
@@ -525,6 +538,9 @@ void ofApp::draw() {
 	ofSetRectMode(OF_RECTMODE_CORNER);
 
 	scrollbar.draw(isCanvasTooBigX, isCanvasTooBigY);
+
+	bool b = false;
+	brushMenuScrollbar.draw(b, isBrushMenuTooBig);
 
 	/// ----- Draw UI
 
@@ -571,8 +587,7 @@ void ofApp::setBrushMenuPos() {
 	brushMenuRect.set(brushMenuPos.x - brushMenuRects[0].getWidth() / 2 - brushMenuPadding,
 		brushMenuPos.y - brushMenuRects[0].getHeight() / 2 - brushMenuPadding,
 		((brushMenuRects[0].getWidth() + brushMenuPadding) * rowLength) + brushMenuPadding,
-		brushCanvasRect.getHeight() + brushMenuPadding);
-		//((brushMenuRects[0].getHeight() + brushMenuPadding) * (brushMenuRects.size() / rowLength))); /// number of rows should be brushMenuRects.size() / rowLength
+		((brushMenuRects[brushMenuRects.size() - 1].getBottom() + brushMenuPadding))); /// number of rows should be brushMenuRects.size() / rowLength
 
 	brushMenuFbo.allocate(brushMenuRect.getWidth(), brushMenuRect.getHeight(), GL_RGBA);
 	brushMenuFbo.begin();
@@ -810,24 +825,24 @@ void ofApp::resizeCanvas(int w, int h) {
 	/// Recheck if canvas.height is > canvasContainerMaxSz
 
 	if (mainCanvasRect.getHeight() <= canvasContainerMaxSz.y) {
-		canvasContainer.height = mainCanvasRect.getHeight();
+		canvasScrollableContainer.height = mainCanvasRect.getHeight();
 		isCanvasTooBigY = false;
 	}
 	else if (mainCanvasRect.getHeight() > canvasContainerMaxSz.y) {
-		canvasContainer.height = canvasContainerMaxSz.y;
+		canvasScrollableContainer.height = canvasContainerMaxSz.y;
 		isCanvasTooBigY = true;
 	}
 
 	if (mainCanvasRect.getWidth() <= canvasContainerMaxSz.x) {
-		canvasContainer.width = mainCanvasRect.getWidth();
+		canvasScrollableContainer.width = mainCanvasRect.getWidth();
 		isCanvasTooBigX = false;
 	}
 	else if (mainCanvasRect.getWidth() > canvasContainerMaxSz.x) {
-		canvasContainer.width = canvasContainerMaxSz.x;
+		canvasScrollableContainer.width = canvasContainerMaxSz.x;
 		isCanvasTooBigX = true;
 	}
 
-	canvasContainerFbo.allocate(canvasContainer.getWidth(), canvasContainer.getHeight(), GL_RGBA);
+	canvasContainerFbo.allocate(canvasScrollableContainer.getWidth(), canvasScrollableContainer.getHeight(), GL_RGBA);
 	canvasContainerFbo.begin();
 	ofClear(255, 255, 255, 0);
 	canvasContainerFbo.end();
@@ -835,11 +850,11 @@ void ofApp::resizeCanvas(int w, int h) {
 	setBrushCanvasRect();
 	setBrushMenuPos();
 	setGuiPos();
-	scrollbar.setup(canvasContainer, mainCanvasRect);
+	scrollbar.setup(canvasScrollableContainer, mainCanvasRect);
 	makeMainCanvasBg();
 
 	/// Reset scrollbar length
-	status.setLength(canvasContainer.getWidth() - fpsTxtLen);
+	status.setLength(canvasScrollableContainer.getWidth() - fpsTxtLen);
 
 	status.say("Canvas resized to " + ofToString(w) + " x " + ofToString(h), StatusBar::UrgencyLevel::URGENCY_LEVEL_NORMAL);
 }
@@ -847,7 +862,7 @@ void ofApp::resizeCanvas(int w, int h) {
 //--------------------------------------------------------------
 void ofApp::setBrushCanvasRect() {
 	brushCanvasPos = { windowMargin + (brushCanvasDisplaySize.y / 2),
-						 canvasContainer.getBottom() + scrollbar.getSize() + windowMargin + (brushCanvasDisplaySize.y / 2) };
+						 canvasScrollableContainer.getBottom() + scrollbar.getSize() + windowMargin + (brushCanvasDisplaySize.y / 2) };
 
 	brushCanvasRect.set(brushCanvasPos.x - (brushCanvasDisplaySize.x / 2),
 		brushCanvasPos.y - (brushCanvasDisplaySize.y / 2),
@@ -1216,6 +1231,8 @@ void ofApp::addNewBrushMenuSlot() {
 		brushCanvasComputeSize.x,
 		brushCanvasComputeSize.y);
 
+	//if(brushMenuRects[brushMenuRects.size()-1].)
+
 	brushMenuFbos.resize(numSavedBrushes);
 	int i = brushMenuFbos.size() - 1;
 	brushMenuFbos[i].allocate(brushCanvasComputeSize.x, brushCanvasComputeSize.y, GL_RGBA);
@@ -1224,14 +1241,16 @@ void ofApp::addNewBrushMenuSlot() {
 	brushMenuFbos[i].end();
 
 	setBrushMenuPos();
+
+	if (brushMenuRect.getHeight() > brushMenuScrollableContainer.getHeight()) isBrushMenuTooBig = true;
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseScrolled(int x, int y, float scrollX, float scrollY) {
 	int speed = 10;
 
-	if (canvasContainer.inside(x, y)) {
-		if (mainCanvasRect.getHeight() > canvasContainer.getHeight()) { /// if canvas is bigger than max canvas size
+	if (canvasScrollableContainer.inside(x, y)) {
+		if (mainCanvasRect.getHeight() > canvasScrollableContainer.getHeight()) { /// if canvas is bigger than max canvas size
 			canvasScrollY += scrollY * speed;
 
 			int maxScrollY = (mainCanvasRect.getHeight() - canvasContainerFbo.getHeight()) * -1;
@@ -1239,7 +1258,7 @@ void ofApp::mouseScrolled(int x, int y, float scrollX, float scrollY) {
 			else if (canvasScrollY < maxScrollY) canvasScrollY = maxScrollY;
 		}
 
-		if (mainCanvasRect.getWidth() > canvasContainer.getWidth()) { /// if canvas is bigger than max canvas size
+		if (mainCanvasRect.getWidth() > canvasScrollableContainer.getWidth()) { /// if canvas is bigger than max canvas size
 			canvasScrollX += scrollX * speed;
 
 			int maxScrollX = (mainCanvasRect.getWidth() - canvasContainerFbo.getWidth()) * -1;
@@ -1270,37 +1289,37 @@ void ofApp::windowResized(int w, int h) {
 	/// Recheck if canvas.height is > canvasContainerMaxSz
 
 	if (mainCanvasRect.getHeight() <= canvasContainerMaxSz.y) {
-		canvasContainer.height = mainCanvasRect.getHeight();
+		canvasScrollableContainer.height = mainCanvasRect.getHeight();
 		isCanvasTooBigY = false;
 	}
 	else if (mainCanvasRect.getHeight() > canvasContainerMaxSz.y) {
-		canvasContainer.height = canvasContainerMaxSz.y;
+		canvasScrollableContainer.height = canvasContainerMaxSz.y;
 		isCanvasTooBigY = true;
 	}
 
 	if (mainCanvasRect.getWidth() <= canvasContainerMaxSz.x) {
-		canvasContainer.width = mainCanvasRect.getWidth();
+		canvasScrollableContainer.width = mainCanvasRect.getWidth();
 		isCanvasTooBigX = false;
 	}
 	else if (mainCanvasRect.getWidth() > canvasContainerMaxSz.x) {
-		canvasContainer.width = canvasContainerMaxSz.x;
+		canvasScrollableContainer.width = canvasContainerMaxSz.x;
 		isCanvasTooBigX = true;
 	}
 
-	canvasContainerFbo.allocate(canvasContainer.getWidth(), canvasContainer.getHeight(), GL_RGBA);
+	canvasContainerFbo.allocate(canvasScrollableContainer.getWidth(), canvasScrollableContainer.getHeight(), GL_RGBA);
 	canvasContainerFbo.begin();
 	ofClear(255, 255, 255, 0);
 	canvasContainerFbo.end();
 
 	canvasScrollX = 0;
 	canvasScrollY = 0;
-	scrollbar.setup(canvasContainer, mainCanvasRect);
+	scrollbar.setup(canvasScrollableContainer, mainCanvasRect);
 	setBrushCanvasRect();
 	setBrushMenuPos();
 	setGuiPos();
 
 	/// Reset scrollbar length
-	status.setLength(canvasContainer.getWidth() - fpsTxtLen);
+	status.setLength(canvasScrollableContainer.getWidth() - fpsTxtLen);
 
 	/// Reset modal center pos
 	canvasDimsModal.resetCenterPos();

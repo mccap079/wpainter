@@ -52,7 +52,7 @@ public:
 	/// Canvas scrolling
 	ScrollBar scrollbar;
 	glm::vec2 canvasContainerMaxSz;
-	ofRectangle canvasContainer;
+	ofRectangle canvasScrollableContainer;
 	ofFbo canvasContainerFbo;
 	int maxTexSz = 0;
 	int canvasScrollX, canvasScrollY;
@@ -176,6 +176,12 @@ public:
 	vector<ofFbo> brushMenuFbos;
 	vector<ofRectangle> brushMenuRects;
 	ofColor selectionHighlight;
+
+	///Brush collection scrolling
+	ofRectangle brushMenuScrollableContainer;
+	ScrollBar brushMenuScrollbar;
+	int brushMenuScroll;
+	bool isBrushMenuTooBig;
 
 	/// Status bars
 
