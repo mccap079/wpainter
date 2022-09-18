@@ -166,6 +166,7 @@ public:
 	void setBrushMenuPos();
 	void addNewBrushMenuSlot();
 
+	ofFbo brushMenuFbo;
 	ofRectangle brushMenuRect;
 	int numSavedBrushes = 30;
 	glm::vec2 brushMenuPos;

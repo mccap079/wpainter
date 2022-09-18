@@ -438,41 +438,65 @@ void ofApp::draw() {
 
 	/// ----- Saved brushes
 
-	ofNoFill();
-	for (int i = 0; i < brushMenuRects.size(); i++) {
-		/// Border
-		if (i == selectedBrush) {
-			ofSetColor(selectionHighlight);
-			ofDrawRectangle(brushMenuRects[i].getPosition().x,
-				brushMenuRects[i].getPosition().y,
-				brushMenuRects[i].getWidth() + 6,
-				brushMenuRects[i].getHeight() + 6);
-		}
-		else {
-			int borderSz = 2;
-			if (hoveredBrush == i) borderSz = 6;
-			ofSetColor(canvasBorderCol);
-			ofDrawRectangle(brushMenuRects[i].getPosition().x,
-				brushMenuRects[i].getPosition().y,
-				brushMenuRects[i].getWidth() + borderSz,
-				brushMenuRects[i].getHeight() + borderSz);
-		}
-		ofSetColor(ofColor::white);
-			ofDrawRectangle(brushMenuRects[i]);
-		if (i == brushMenuRects.size() - 1) {
-			///Draw plus sign here
-			ofSetColor(ofColor::black);
-			ofDrawBitmapString("+", 
-				brushMenuRects[i].getTopLeft().x - 4,
-				brushMenuRects[i].getTopLeft().y + 5);
-		}
-		else {
-			brushMenuFbos[i].draw(brushMenuRects[i]);
-		}
+	brushMenuFbo.begin(); 
+	{
+		ofClear(255, 255, 255, 0);
+		ofFill();
+		ofSetColor(ofColor::darkGray);
+		ofSetRectMode(OF_RECTMODE_CORNER);
+
+		ofDrawRectangle(
+			0,
+			0,
+			brushMenuRect.getWidth(),
+			brushMenuRect.getHeight());
+
+		ofSetRectMode(OF_RECTMODE_CENTER);
+		ofNoFill();
+		for (int i = 0; i < brushMenuRects.size(); i++) {
+			/// Border
+			if (i == selectedBrush) {
+				ofSetColor(selectionHighlight);
+				ofDrawRectangle(brushMenuRects[i].getPosition().x,
+					brushMenuRects[i].getPosition().y,
+					brushMenuRects[i].getWidth() + 6,
+					brushMenuRects[i].getHeight() + 6);
+			}
+			else {
+				int borderSz = 2;
+				if (hoveredBrush == i) borderSz = 6;
+				ofSetColor(canvasBorderCol);
+				ofDrawRectangle(brushMenuRects[i].getPosition().x,
+					brushMenuRects[i].getPosition().y,
+					brushMenuRects[i].getWidth() + borderSz,
+					brushMenuRects[i].getHeight() + borderSz);
+			}
+			ofSetColor(ofColor::white);
+				ofDrawRectangle(brushMenuRects[i]);
+			if (i == brushMenuRects.size() - 1) {
+				///Draw plus sign here
+
+				ofSetColor(ofColor::black);
+				ofDrawBitmapString("+", 
+					brushMenuRects[i].getTopLeft().x - 4,
+					brushMenuRects[i].getTopLeft().y + 5);
+			}
+			else {
+				brushMenuFbos[i].draw(brushMenuRects[i]);
+			}
 		
 
-		/// Selected brush highlight
+			/// Selected brush highlight
+		}
 	}
+	brushMenuFbo.end();
+
+	ofSetRectMode(OF_RECTMODE_CORNER);
+	ofSetColor(ofColor::white);
+	brushMenuFbo.draw(
+		brushMenuRect.getLeft(),
+		brushMenuRect.getTop());
+	ofSetRectMode(OF_RECTMODE_CENTER);
 
 	/// ----- Brush paint
 
@@ -531,15 +555,29 @@ void ofApp::setBrushMenuPos() {
 			}
 			else x++;
 		}
+		
 		brushMenuRects[i].setPosition(
-			brushMenuPos.x + ((brushMenuRects[i].getWidth() + brushMenuPadding) * x),
-			brushMenuPos.y + ((brushMenuRects[i].getHeight() + brushMenuPadding) * y));
+			brushMenuPadding + (brushMenuRects[i].getWidth()/2) + ((brushMenuRects[i].getWidth() + brushMenuPadding) * x),
+			brushMenuPadding + (brushMenuRects[i].getHeight()/2) + ((brushMenuRects[i].getHeight() + brushMenuPadding) * y));
 	}
 
-	brushMenuRect.set(brushMenuPos.x,
-		brushMenuPos.y,
-		(brushMenuRects[0].getWidth() + brushMenuPadding) * rowLength,
-		((brushMenuRects[0].getHeight() + brushMenuPadding) * (brushMenuRects.size() / rowLength))); /// number of rows should be brushMenuRects.size() / rowLength
+	/*
+	ofDrawRectangle(
+			brushMenuRect.getLeft() - brushMenuRects[0].getWidth()/2 - brushMenuPadding,
+			brushMenuRect.getTop() - brushMenuRects[0].getHeight()/2 - brushMenuPadding,
+			brushMenuRect.getWidth() + brushMenuPadding,
+			brushMenuRect.getHeight() + brushMenuPadding);*/
+
+	brushMenuRect.set(brushMenuPos.x - brushMenuRects[0].getWidth() / 2 - brushMenuPadding,
+		brushMenuPos.y - brushMenuRects[0].getHeight() / 2 - brushMenuPadding,
+		((brushMenuRects[0].getWidth() + brushMenuPadding) * rowLength) + brushMenuPadding,
+		brushCanvasRect.getHeight() + brushMenuPadding);
+		//((brushMenuRects[0].getHeight() + brushMenuPadding) * (brushMenuRects.size() / rowLength))); /// number of rows should be brushMenuRects.size() / rowLength
+
+	brushMenuFbo.allocate(brushMenuRect.getWidth(), brushMenuRect.getHeight(), GL_RGBA);
+	brushMenuFbo.begin();
+	ofClear(255, 255, 255, 0);
+	brushMenuFbo.end();
 }
 
 //--------------------------------------------------------------
@@ -1077,8 +1115,8 @@ void ofApp::keyReleased(int key) {
 
 //--------------------------------------------------------------
 void ofApp::mouseMoved(int x, int y) {
-	int savedBrushRectX = x + (brushMenuRects[0].getWidth() / 2);
-	int savedBrushRectY = y + (brushMenuRects[0].getHeight() / 2);
+	int savedBrushRectX = x + (brushMenuRects[0].getWidth() / 2) - brushMenuRect.getLeft();
+	int savedBrushRectY = y + (brushMenuRects[0].getHeight() / 2) - brushMenuRect.getTop();
 
 	for (int i = 0; i < brushMenuRects.size(); i++) {
 		if (brushMenuRects[i].inside(savedBrushRectX, savedBrushRectY)) {
@@ -1147,16 +1185,16 @@ void ofApp::mouseReleased(int x, int y, int button) {
 
 	/// ----- Brush selection
 	if (!scrollbar.isSelectedX() && !scrollbar.isSelectedY()) {
-		int savedBrushRectX = x + (brushMenuRects[0].getWidth() / 2);
-		int savedBrushRectY = y + (brushMenuRects[0].getHeight() / 2);
+		int savedBrushRectX = x + (brushMenuRects[0].getWidth() / 2) - brushMenuRect.getLeft();
+		int savedBrushRectY = y + (brushMenuRects[0].getHeight() / 2) - brushMenuRect.getTop();
 
 		for (int i = 0; i < brushMenuRects.size(); i++) {
 			if (brushMenuRects[i].inside(savedBrushRectX, savedBrushRectY)) {
-				selectedBrush = i;
 				if (i == brushMenuRects.size() - 1) {
 					addNewBrushMenuSlot();
 					return;
 				} else {
+					selectedBrush = i;
 					loadBrush(i);
 					return;
 				}
@@ -1168,29 +1206,24 @@ void ofApp::mouseReleased(int x, int y, int button) {
 	scrollbar.mouseReleased();
 }
 
+//--------------------------------------------------------------
 void ofApp::addNewBrushMenuSlot() {
 	cout << "Adding new brush menu slot!" << endl;
 	numSavedBrushes += 1;
 
 	brushMenuRects.resize(numSavedBrushes + 1);
-	brushMenuRects[brushMenuRects.size() - 2].setSize(
-		brushCanvasComputeSize.x,
-		brushCanvasComputeSize.y);
 	brushMenuRects[brushMenuRects.size() - 1].setSize(
 		brushCanvasComputeSize.x,
 		brushCanvasComputeSize.y);
 
 	brushMenuFbos.resize(numSavedBrushes);
-	int i = brushMenuFbos.size() - 2;
+	int i = brushMenuFbos.size() - 1;
 	brushMenuFbos[i].allocate(brushCanvasComputeSize.x, brushCanvasComputeSize.y, GL_RGBA);
 	brushMenuFbos[i].begin();
 	ofClear(255, 255, 255, 0);
 	brushMenuFbos[i].end();
-	i = brushMenuFbos.size() - 1;
-	brushMenuFbos[i].allocate(brushCanvasComputeSize.x, brushCanvasComputeSize.y, GL_RGBA);
-	brushMenuFbos[i].begin();
-	ofClear(255, 255, 255, 0);
-	brushMenuFbos[i].end();
+
+	setBrushMenuPos();
 }
 
 //--------------------------------------------------------------
