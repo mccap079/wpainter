@@ -150,6 +150,14 @@ void ofApp::setup() {
 		brushMenuRect.getWidth(),
 		brushCanvasRect.getHeight());
 
+	brushMenuScrollableContainerFbo.allocate(
+		brushMenuScrollableContainer.getWidth(),
+		brushMenuScrollableContainer.getHeight(),
+		GL_RGBA);
+	brushMenuScrollableContainerFbo.begin();
+	ofClear(255, 255, 255, 0);
+	brushMenuScrollableContainerFbo.end();
+
 	brushMenuScrollbar.setup(brushMenuScrollableContainer, brushMenuRect);
 
 	status.say("Welcome artist ^ - ^");
@@ -506,13 +514,17 @@ void ofApp::draw() {
 
 	ofSetRectMode(OF_RECTMODE_CORNER);
 	ofSetColor(ofColor::white);
-	brushMenuFbo.draw(
-		brushMenuRect.getLeft(),
-		brushMenuRect.getTop());
-	ofSetRectMode(OF_RECTMODE_CENTER);
+	brushMenuScrollableContainerFbo.begin();
+	brushMenuFbo.draw(0, brushMenuScroll);
+	brushMenuScrollableContainerFbo.end();
+
+	brushMenuScrollableContainerFbo.draw(
+		brushMenuScrollableContainer.getLeft(),
+		brushMenuScrollableContainer.getTop());
 
 	/// ----- Brush paint
 
+	ofSetRectMode(OF_RECTMODE_CENTER);
 	ofFill();
 	if (bPaintingInBrushCanvas) updateBrushCanvas();
 	ofSetColor(ofColor::white);
@@ -576,13 +588,6 @@ void ofApp::setBrushMenuPos() {
 			brushMenuPadding + (brushMenuRects[i].getWidth()/2) + ((brushMenuRects[i].getWidth() + brushMenuPadding) * x),
 			brushMenuPadding + (brushMenuRects[i].getHeight()/2) + ((brushMenuRects[i].getHeight() + brushMenuPadding) * y));
 	}
-
-	/*
-	ofDrawRectangle(
-			brushMenuRect.getLeft() - brushMenuRects[0].getWidth()/2 - brushMenuPadding,
-			brushMenuRect.getTop() - brushMenuRects[0].getHeight()/2 - brushMenuPadding,
-			brushMenuRect.getWidth() + brushMenuPadding,
-			brushMenuRect.getHeight() + brushMenuPadding);*/
 
 	brushMenuRect.set(brushMenuPos.x - brushMenuRects[0].getWidth() / 2 - brushMenuPadding,
 		brushMenuPos.y - brushMenuRects[0].getHeight() / 2 - brushMenuPadding,
@@ -1019,13 +1024,10 @@ void ofApp::loadBrushesFromFile() {
 		ofImage img;
 		ofFile f;
 
-		cout << "i = " << i << endl;
-
 		if (!f.doesFileExist(ofToDataPath("brushes/" + ofToString(i) + ".png"))) {
-			cout << "Couldnt find file [" + ofToDataPath("brushes/" + ofToString(i) + ".png") + "]" << endl;
 			i++;
 			continue;
-		} else cout << "Found file at [" + ofToDataPath("brushes/" + ofToString(i) + ".png") + "]" << endl;
+		}
 
 		img.load(ofToDataPath("brushes/" + ofToString(i) + ".png"));
 
@@ -1131,7 +1133,7 @@ void ofApp::keyReleased(int key) {
 //--------------------------------------------------------------
 void ofApp::mouseMoved(int x, int y) {
 	int savedBrushRectX = x + (brushMenuRects[0].getWidth() / 2) - brushMenuRect.getLeft();
-	int savedBrushRectY = y + (brushMenuRects[0].getHeight() / 2) - brushMenuRect.getTop();
+	int savedBrushRectY = y + (brushMenuRects[0].getHeight() / 2) - brushMenuRect.getTop() - brushMenuScroll;
 
 	for (int i = 0; i < brushMenuRects.size(); i++) {
 		if (brushMenuRects[i].inside(savedBrushRectX, savedBrushRectY)) {
@@ -1143,6 +1145,7 @@ void ofApp::mouseMoved(int x, int y) {
 
 	/// ----- Scrollbars
 	scrollbar.mouseMoved(x, y);
+	brushMenuScrollbar.mouseMoved(x, y);
 }
 
 //--------------------------------------------------------------
@@ -1154,6 +1157,10 @@ void ofApp::mouseDragged(int x, int y, int button) {
 	scrollbar.mouseDragged(x, y, canvasScrollX, canvasScrollY);
 	if (scrollbar.isSelectedX()) return;
 	else if (scrollbar.isSelectedY()) return;
+
+	int brushMenuScrollX = 0;
+	brushMenuScrollbar.mouseDragged(x, y, brushMenuScrollX, brushMenuScroll);
+	if (brushMenuScrollbar.isSelectedY()) return;
 
 	bPaintingInBrushCanvas = brushCanvasRect.inside(x, y) ? 1 : 0;
 	bPaintingInMainCanvas = mainCanvasRect.inside(x, y) ? 1 : 0;
@@ -1176,6 +1183,10 @@ void ofApp::mousePressed(int x, int y, int button) {
 	scrollbar.mousePressed(x, y, canvasScrollX, canvasScrollY);
 	if (scrollbar.isSelectedX()) return;
 	else if (scrollbar.isSelectedY()) return;
+
+	int brushMenuScrollX = 0;
+	brushMenuScrollbar.mousePressed(x, y, brushMenuScrollX, brushMenuScroll);
+	if (brushMenuScrollbar.isSelectedY()) return;
 
 	/// ----- Canvas painting
 	bPaintingInBrushCanvas = brushCanvasRect.inside(x, y) ? 1 : 0;
@@ -1201,7 +1212,7 @@ void ofApp::mouseReleased(int x, int y, int button) {
 	/// ----- Brush selection
 	if (!scrollbar.isSelectedX() && !scrollbar.isSelectedY()) {
 		int savedBrushRectX = x + (brushMenuRects[0].getWidth() / 2) - brushMenuRect.getLeft();
-		int savedBrushRectY = y + (brushMenuRects[0].getHeight() / 2) - brushMenuRect.getTop();
+		int savedBrushRectY = y + (brushMenuRects[0].getHeight() / 2) - brushMenuRect.getTop() - brushMenuScroll;
 
 		for (int i = 0; i < brushMenuRects.size(); i++) {
 			if (brushMenuRects[i].inside(savedBrushRectX, savedBrushRectY)) {
@@ -1219,6 +1230,7 @@ void ofApp::mouseReleased(int x, int y, int button) {
 
 	/// --- Scrollbars
 	scrollbar.mouseReleased();
+	brushMenuScrollbar.mouseReleased();
 }
 
 //--------------------------------------------------------------
@@ -1242,7 +1254,10 @@ void ofApp::addNewBrushMenuSlot() {
 
 	setBrushMenuPos();
 
-	if (brushMenuRect.getHeight() > brushMenuScrollableContainer.getHeight()) isBrushMenuTooBig = true;
+	if (brushMenuRect.getHeight() > brushMenuScrollableContainer.getHeight()) {
+		isBrushMenuTooBig = true;
+		brushMenuScrollbar.setup(brushMenuScrollableContainer, brushMenuRect);
+	}
 }
 
 //--------------------------------------------------------------
@@ -1265,8 +1280,19 @@ void ofApp::mouseScrolled(int x, int y, float scrollX, float scrollY) {
 			if (canvasScrollX > 0) canvasScrollX = 0;
 			else if (canvasScrollX < maxScrollX) canvasScrollX = maxScrollX;
 		}
+	}
 
+	if (brushMenuScrollableContainer.inside(x, y)) {
+		if (brushMenuRect.getHeight() > brushMenuScrollableContainer.getHeight()) {
+			brushMenuScroll += scrollY * speed;
+
+			int maxScrollY = (brushMenuRect.getHeight() - brushMenuScrollableContainerFbo.getHeight()) * -1;
+			if (brushMenuScroll > 0) brushMenuScroll = 0;
+			else if (brushMenuScroll < maxScrollY) brushMenuScroll = maxScrollY;
+		}
 		scrollbar.mouseScrolled(canvasScrollX, canvasScrollY);
+		int brushMenuScrollX = 0;
+		brushMenuScrollbar.mouseScrolled(brushMenuScrollX, brushMenuScroll);
 	}
 }
 

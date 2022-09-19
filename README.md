@@ -25,6 +25,8 @@ NOTE:
 
 Download the `v1.1` Windows release from the Releases page, unzip and launch bin/wPainter.exe.
 
+Download the Windows release from the Releases page, unzip and launch the bootlegWendypaint/wpainter.exe.
+
 ## Usage
 
 ### User interface

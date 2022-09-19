@@ -33,7 +33,7 @@ public:
 			m_sz,
 			canvasContainer.getHeight()
 		);
-
+		
 		float normalizedPercentHeight = canvasContainer.getHeight() / m_mainCanvasRect.getHeight();
 
 		m_handle_y.setSize(m_sz - (m_handleMargin * 2),

@@ -166,8 +166,6 @@ public:
 	void setBrushMenuPos();
 	void addNewBrushMenuSlot();
 
-	ofFbo brushMenuFbo;
-	ofRectangle brushMenuRect;
 	int numSavedBrushes = 30;
 	glm::vec2 brushMenuPos;
 	const int brushMenuPadding = windowMargin;
@@ -178,7 +176,15 @@ public:
 	ofColor selectionHighlight;
 
 	///Brush collection scrolling
+	//MainCanvasRect
+	ofRectangle brushMenuRect;
+	//MainCanvasFbo
+	ofFbo brushMenuFbo;
+	//CanvasScrollableContainer
 	ofRectangle brushMenuScrollableContainer;
+	//CanvasContainerFbo
+	ofFbo brushMenuScrollableContainerFbo;
+
 	ScrollBar brushMenuScrollbar;
 	int brushMenuScroll;
 	bool isBrushMenuTooBig;
