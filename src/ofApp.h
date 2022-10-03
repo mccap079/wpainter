@@ -165,6 +165,7 @@ public:
 	void loadBrushesFromFile();
 	void setBrushMenuPos();
 	void addNewBrushMenuSlot();
+	void setupBrushMenuScrolling();
 
 	int numSavedBrushes = 30;
 	glm::vec2 brushMenuPos;

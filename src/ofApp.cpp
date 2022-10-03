@@ -86,11 +86,7 @@ void ofApp::setup() {
 	brushDir.allowExt("png");
 	brushDir.listDir();
 	numSavedBrushes = brushDir.size();
-	cout << "numSavedBrushes = " << numSavedBrushes << endl;
 
-	brushMenuPos =
-	{ (brushCanvasRect.getRight() + windowMargin) + (brushCanvasComputeSize.x / 2),
-		brushCanvasRect.getTop() + (brushCanvasComputeSize.y / 2) };
 	brushMenuRects.resize(numSavedBrushes + 1);
 
 	for (int i = 0; i < brushMenuRects.size(); i++) {
@@ -144,6 +140,15 @@ void ofApp::setup() {
 
 	/// ----- Brush Menu scrollbar
 
+	setupBrushMenuScrolling();
+
+	status.say("Welcome artist ^ - ^");
+
+
+} /// end setup
+
+//--------------------------------------------------------------
+void ofApp::setupBrushMenuScrolling() {
 	brushMenuScrollableContainer.set(
 		brushMenuRect.getLeft(),
 		brushMenuRect.getTop(),
@@ -158,18 +163,16 @@ void ofApp::setup() {
 	ofClear(255, 255, 255, 0);
 	brushMenuScrollableContainerFbo.end();
 
+	if (brushMenuRect.getHeight() > brushMenuScrollableContainer.getHeight()) isBrushMenuTooBig = true;
+
 	brushMenuScrollbar.setup(brushMenuScrollableContainer, brushMenuRect);
-
-	status.say("Welcome artist ^ - ^");
-
-
-} /// end setup
+}
 
 //--------------------------------------------------------------
 void ofApp::setupGui() {
 	/// Brush panel
 
-	brushPanelPos = { brushMenuPos.x + brushMenuRect.getWidth() - windowMargin,
+	brushPanelPos = { brushMenuPos.x + brushMenuRect.getWidth() + brushMenuPadding + brushMenuScrollbar.getSize() - windowMargin,
 		brushCanvasRect.getTop() };
 
 	brushPanel.setup();
@@ -347,7 +350,7 @@ void ofApp::setupGui() {
 
 //--------------------------------------------------------------
 void ofApp::setGuiPos() {
-	brushPanelPos = { brushMenuPos.x + brushMenuRect.getWidth() - windowMargin,
+	brushPanelPos = { brushMenuPos.x + brushMenuRect.getWidth() + brushMenuPadding + brushMenuScrollbar.getSize() - windowMargin,
 		brushCanvasRect.getTop() };
 	brushPanel.setPosition(brushPanelPos);
 
@@ -569,9 +572,13 @@ void ofApp::draw() {
 
 //--------------------------------------------------------------
 void ofApp::setBrushMenuPos() {
+
 	brushMenuPos =
 	{ (brushCanvasRect.getRight() + windowMargin) + (brushCanvasComputeSize.x / 2),
-		brushCanvasRect.getTop() + (brushCanvasComputeSize.y / 2) };
+		brushCanvasRect.getTop() + (brushCanvasComputeSize.y / 2) + brushMenuPadding };
+
+	cout << "setBrushMenuPos, brushMenuPos = " << brushMenuPos << endl;
+
 
 	int rowLength = 5;
 	int x = 0, y = 0;
@@ -589,10 +596,10 @@ void ofApp::setBrushMenuPos() {
 			brushMenuPadding + (brushMenuRects[i].getHeight()/2) + ((brushMenuRects[i].getHeight() + brushMenuPadding) * y));
 	}
 
-	brushMenuRect.set(brushMenuPos.x - brushMenuRects[0].getWidth() / 2 - brushMenuPadding,
+	brushMenuRect.set(brushMenuPos.x - brushMenuRects[0].getWidth() / 2,
 		brushMenuPos.y - brushMenuRects[0].getHeight() / 2 - brushMenuPadding,
 		((brushMenuRects[0].getWidth() + brushMenuPadding) * rowLength) + brushMenuPadding,
-		((brushMenuRects[brushMenuRects.size() - 1].getBottom() + brushMenuPadding))); /// number of rows should be brushMenuRects.size() / rowLength
+		((brushMenuRects[brushMenuRects.size() - 1].getBottom() + brushMenuPadding)));
 
 	brushMenuFbo.allocate(brushMenuRect.getWidth(), brushMenuRect.getHeight(), GL_RGBA);
 	brushMenuFbo.begin();
@@ -854,6 +861,8 @@ void ofApp::resizeCanvas(int w, int h) {
 
 	setBrushCanvasRect();
 	setBrushMenuPos();
+	setupBrushMenuScrolling();
+
 	setGuiPos();
 	scrollbar.setup(canvasScrollableContainer, mainCanvasRect);
 	makeMainCanvasBg();
@@ -1346,6 +1355,14 @@ void ofApp::windowResized(int w, int h) {
 
 	/// Reset scrollbar length
 	status.setLength(canvasScrollableContainer.getWidth() - fpsTxtLen);
+
+	brushMenuScrollableContainer.set(
+		brushMenuRect.getLeft(),
+		brushMenuRect.getTop(),
+		brushMenuRect.getWidth(),
+		brushCanvasRect.getHeight());
+
+	brushMenuScrollbar.setup(brushMenuScrollableContainer, brushMenuRect);
 
 	/// Reset modal center pos
 	canvasDimsModal.resetCenterPos();
